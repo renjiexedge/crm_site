@@ -1,0 +1,257 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Homecare One CRM</title>
+    <link rel="stylesheet" href="style.css">
+    <script type="module" src="./script.js"></script>
+  </head>
+  <body class="crm-page">
+    <div class="app">
+      <div class="side">
+        <div class="logo">HOMECARE ONE</div>
+        <button class="nav on" onclick="go('dashboard')">Dashboard</button>
+        <button class="nav" onclick="go('accounts')">Accounts</button>
+        <button class="nav" onclick="go('contacts')">Contacts</button>
+        <button class="nav" onclick="go('opportunities')">Opportunities</button>
+        <button class="nav" onclick="go('pipeline')">Pipeline</button>
+        <button class="nav" onclick="go('activities')">Activities</button>
+        <button class="nav" onclick="go('submissions')">Submissions</button>
+        <button class="nav" onclick="go('reports')">Reports</button>
+      </div>
+      <div class="main">
+        <div class="topbar">
+          <div class="ttitle" id="ttl">Dashboard</div>
+          <div class="aibar">
+            <input
+              id="aiin"
+              type="text"
+              placeholder='e.g. "Log a call with Bright Hill NH"'
+            />
+            <button class="aibtn" >Ask AI ↗</button>
+          </div>
+        </div>
+        <div class="aimsg" id="aimsg"></div>
+        <div class="body">
+          <div class="pg on" id="pg-dashboard">
+            <div class="sect-label">Job Orders</div>
+            <div class="stats" id="dstats-jobs"></div>
+            <div class="sect-label">
+              Headcount — confirmed orders only (Active Vacancy onwards)
+            </div>
+            <div class="stats" id="dstats-hc"></div>
+            <div class="eq-banner" id="hc-equation"></div>
+            <div
+              style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px"
+            >
+              <div>
+                <div class="row">
+                  <span class="ptitle">Recent activities</span>
+                </div>
+                <div class="card" id="dacts"></div>
+              </div>
+              <div>
+                <div class="row">
+                  <span class="ptitle">Overdue follow-ups</span>
+                </div>
+                <div class="card" id="dod"></div>
+              </div>
+            </div>
+          </div>
+          <div class="pg" id="pg-accounts">
+            <div id="acclist">
+              <div class="row">
+                <span class="ptitle">Accounts</span
+                ><button class="btn btnp" onclick="openM('account')">
+                  + Add account
+                </button>
+              </div>
+              <div class="acc-grid" id="accgrid"></div>
+            </div>
+            <div id="acc360" style="display: none">
+              <span class="back" onclick="backToList()"
+                >← Back to accounts</span
+              >
+              <div id="a360c"></div>
+            </div>
+          </div>
+          <div class="pg" id="pg-contacts">
+            <div class="row">
+              <span class="ptitle">Contacts</span
+              ><button class="btn btnp" onclick="openM('contact')">
+                + Add contact
+              </button>
+            </div>
+            <div class="card">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width: 22%">Name</th>
+                    <th style="width: 20%">Role</th>
+                    <th style="width: 26%">Account</th>
+                    <th style="width: 15%">Phone</th>
+                    <th style="width: 17%">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="ctb"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="pg" id="pg-opportunities">
+            <div class="row">
+              <span class="ptitle">Opportunities / Job Orders</span
+              ><button class="btn btnp" onclick="openM('opportunity')">
+                + Add
+              </button>
+            </div>
+            <div class="card">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width: 22%">Title</th>
+                    <th style="width: 18%">Account</th>
+                    <th style="width: 14%">Stage</th>
+                    <th style="width: 9%">Requested</th>
+                    <th style="width: 9%">Filled</th>
+                    <th style="width: 14%">Progress</th>
+                    <th style="width: 14%">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="otb"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="pg" id="pg-pipeline">
+            <div class="row"><span class="ptitle">Pipeline board</span></div>
+            <div class="pipe-wrap"><div class="pipe" id="pipeboard"></div></div>
+          </div>
+          <div class="pg" id="pg-activities">
+            <div class="row">
+              <span class="ptitle">Activities</span
+              ><button class="btn btnp" onclick="openM('activity')">
+                + Log activity
+              </button>
+            </div>
+            <div class="card">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width: 12%">Type</th>
+                    <th style="width: 20%">Account</th>
+                    <th style="width: 30%">Notes</th>
+                    <th style="width: 11%">Date</th>
+                    <th style="width: 13%">Follow-up</th>
+                    <th style="width: 14%">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="atb"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="pg" id="pg-submissions">
+            <div class="row">
+              <span class="ptitle">Submissions</span
+              ><button class="btn btnp" onclick="openM('submission')">
+                + Add
+              </button>
+            </div>
+            <div class="card">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width: 20%">Candidate</th>
+                    <th style="width: 22%">Account</th>
+                    <th style="width: 12%">Role</th>
+                    <th style="width: 16%">Status</th>
+                    <th style="width: 30%">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="stb"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="pg" id="pg-reports">
+            <div class="row"><span class="ptitle">Reports</span></div>
+            <div class="stats" id="rstats"></div>
+            <div class="rpt-grid">
+              <div>
+                <div
+                  style="font-size: 12px; font-weight: 700; margin-bottom: 6px"
+                >
+                  Headcount by position type
+                </div>
+                <div class="card">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Position</th>
+                        <th>Requested</th>
+                        <th>Filled</th>
+                        <th>Outstanding</th>
+                      </tr>
+                    </thead>
+                    <tbody id="rpos"></tbody>
+                  </table>
+                </div>
+              </div>
+              <div>
+                <div
+                  style="font-size: 12px; font-weight: 700; margin-bottom: 6px"
+                >
+                  Outstanding follow-up activities
+                </div>
+                <div class="card" id="rfu"></div>
+              </div>
+              <div>
+                <div
+                  style="font-size: 12px; font-weight: 700; margin-bottom: 6px"
+                >
+                  Job orders with partial fills
+                </div>
+                <div class="card">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Job order</th>
+                        <th>Req</th>
+                        <th>Filled</th>
+                        <th>Gap</th>
+                      </tr>
+                    </thead>
+                    <tbody id="rpartial"></tbody>
+                  </table>
+                </div>
+              </div>
+              <div>
+                <div
+                  style="font-size: 12px; font-weight: 700; margin-bottom: 6px"
+                >
+                  Pipeline by stage
+                </div>
+                <div class="card">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Stage</th>
+                        <th>Job orders</th>
+                      </tr>
+                    </thead>
+                    <tbody id="rstg"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="modal-bg"
+      id="mbg"
+      onclick="if (event.target === this) closeM();"
+    >
+      <div class="modal" id="mbox"></div>
+    </div>
+    
+  </body>
+</html>
