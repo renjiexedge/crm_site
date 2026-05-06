@@ -375,6 +375,14 @@ async function saveToSupabase() {
     // Separate new vs existing records
     const newAccounts = accounts.filter(a => !a.account_id);
     const existingAccounts = accounts.filter(a => a.account_id);
+    const newContacts = contacts.filter(c => !c.id);
+    const existingContacts = contacts.filter(c => c.id);
+    const newOpportunities = opportunities.filter(o => !o.id);
+    const existingOpportunities = opportunities.filter(o => o.id);
+    const newActivities = activities.filter(a => !a.id);
+    const existingActivities = activities.filter(a => a.id);
+    const newSubmissions = submissions.filter(s => !s.id);
+    const existingSubmissions = submissions.filter(s => s.id);
 
     // Insert new records
     if (newAccounts.length > 0) {
@@ -400,7 +408,7 @@ async function saveToSupabase() {
     //   supabase.from("submissions").upsert(submissions),
     // ]);
 
-    const error = results.find((r) => r.error)?.error;
+    //const error = results.find((r) => r.error)?.error;
 
     if (error) {
       console.error("Error saving CRM data:", error);
@@ -721,7 +729,7 @@ function renderAccGrid() {
         }, 0);
       return (
         '<div class="acc-card" onclick="show360(\'' +
-        a.id +
+        a.account_id +
         '\')"><div class="an">' +
         a.name +
         '</div><div class="ams">' +
@@ -762,7 +770,7 @@ function renderAccGrid() {
 
 function render360(id) {
   var acc = D.accounts.find(function (a) {
-    return a.id === id;
+    return a.account_id === id;
   });
   if (!acc) return;
   var t = tod(),
