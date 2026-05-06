@@ -1365,9 +1365,9 @@ function aOpts(sel) {
     .map(function (a) {
       return (
         '<option value="' +
-        a.id +
+        a.account_id +
         '"' +
-        (a.id === sel ? " selected" : "") +
+        (a.account_id === sel ? " selected" : "") +
         ">" +
         a.name +
         "</option>"
@@ -1595,7 +1595,7 @@ function saveCt(id) {
     //id: id || uid(),
     name: n,
     role: document.getElementById("fr").value,
-    account_id: document.getElementById("fa").value,
+    account_id: document.getElementById("fa").value, //returning undefined account_id when creating new contact, need to fix
     phone: document.getElementById("fp").value,
     email: document.getElementById("fe").value,
   };
