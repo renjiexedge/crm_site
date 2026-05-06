@@ -391,12 +391,61 @@ async function saveToSupabase() {
         .insert(newAccounts);
       if (insertError) throw insertError;
     }
+    if (newContacts.length > 0) {
+      const { error: insertError } = await supabase
+        .from('contacts')
+        .insert(newContacts);
+      if (insertError) throw insertError;
+    }
+    if (newOpportunities.length > 0) {
+      const { error: insertError } = await supabase
+        .from('opportunities')
+        .insert(newOpportunities);
+      if (insertError) throw insertError;
+    }
+    if (newActivities.length > 0) {
+      const { error: insertError } = await supabase
+        .from('activities')
+        .insert(newActivities);
+      if (insertError) throw insertError;
+    }
+    if (newSubmissions.length > 0) {
+      const { error: insertError } = await supabase
+        .from('submissions')
+        .insert(newSubmissions);
+      if (insertError) throw insertError;
+    }
+    
 
         // Update existing records
     if (existingAccounts.length > 0) {
       const { error: updateError } = await supabase
         .from('accounts')
         .upsert(existingAccounts);
+      if (updateError) throw updateError;
+    }
+    if (existingContacts.length > 0) {
+      const { error: updateError } = await supabase
+        .from('contacts')
+        .upsert(existingContacts);
+      if (updateError) throw updateError;
+    }
+    if (existingOpportunities.length > 0) {
+      const { error: updateError } = await supabase
+        .from('opportunities')
+        .upsert(existingOpportunities);
+      if (updateError) throw updateError;
+    }
+    if (existingActivities.length > 0) {
+      const { error: updateError } = await supabase
+        .from('activities')
+        .upsert(existingActivities);
+      if (updateError) throw updateError;
+    }
+    if (existingSubmissions.length > 0) {
+      const { error: updateError } = await supabase
+        .from('submissions')
+        .upsert(existingSubmissions);
       if (updateError) throw updateError;
     }
 
