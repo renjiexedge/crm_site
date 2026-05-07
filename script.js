@@ -709,7 +709,7 @@ function renderDash() {
             "<tr><td>" +
             tpb(a.type) +
             "</td><td>" +
-            an(a.accountId) +
+            an(a.account_id) +
             "</td><td>" +
             a.date +
             "</td></tr>"
@@ -725,7 +725,7 @@ function renderDash() {
         .map(function (a) {
           return (
             "<tr><td>" +
-            an(a.accountId) +
+            an(a.account_id) +
             '</td><td class="od">' +
             a.followup +
             "</td><td>" +
@@ -743,10 +743,10 @@ function renderAccGrid() {
   document.getElementById("accgrid").innerHTML = D.accounts
     .map(function (a) {
       var opps = D.opportunities.filter(function (o) {
-          return o.accountId === a.id;
+          return o.account_id === a.account_id;
         }),
         acts = D.activities.filter(function (x) {
-          return x.accountId === a.id;
+          return x.account_id === a.account_id;
         }),
         ov = acts.filter(function (x) {
           return x.followup && x.followup <= t && !x.done;
@@ -824,22 +824,22 @@ function render360(id) {
   if (!acc) return;
   var t = tod(),
     cts = D.contacts.filter(function (c) {
-      return c.accountId === id;
+      return c.account_id === id;
     }),
     opps = D.opportunities.filter(function (o) {
-      return o.accountId === id;
+      return o.account_id === id;
     }),
     acts = []
       .concat(
         D.activities.filter(function (a) {
-          return a.accountId === id;
+          return a.account_id === id;
         }),
       )
       .sort(function (a, b) {
         return b.date > a.date ? 1 : -1;
       }),
     subs = D.submissions.filter(function (s) {
-      return s.accountId === id;
+      return s.account_id === id;
     }),
     od = acts.filter(function (a) {
       return a.followup && a.followup <= t && !a.done;
@@ -1053,7 +1053,7 @@ function renderContacts() {
             "</b></td><td>" +
             c.role +
             "</td><td>" +
-            an(c.accountId) +
+            an(c.account_id) +
             "</td><td>" +
             (c.phone || "—") +
             "</td><td><button class=\"btn\" onclick=\"openM('contact','" +
@@ -1088,7 +1088,7 @@ function renderOpps() {
             o.title +
             lbl +
             "</td><td>" +
-            an(o.accountId) +
+            an(o.account_id) +
             "</td><td>" +
             stb(o.stage) +
             '</td><td style="text-align:center">' +
@@ -1129,7 +1129,7 @@ function renderActs() {
               ? '<span style="color:#7a4e0a;margin-left:3px">★</span>'
               : "") +
             "</td><td>" +
-            an(a.accountId) +
+            an(a.account_id) +
             '</td><td style="color:#666;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' +
             (a.notes || "—") +
             "</td><td>" +
@@ -1157,7 +1157,7 @@ function renderSubs() {
             "<tr><td><b>" +
             s.candidateName +
             "</b></td><td>" +
-            an(s.accountId) +
+            an(s.account_id) +
             "</td><td>" +
             s.role +
             "</td><td>" +
@@ -1195,7 +1195,7 @@ function renderPipeline() {
                 '\')"><div class="pctitle">' +
                 o.title +
                 '</div><div class="pcacc">' +
-                an(o.accountId) +
+                an(o.account_id) +
                 '</div><div style="font-size:10px;color:#888;margin-top:2px">' +
                 fil +
                 "/" +
@@ -1301,7 +1301,7 @@ function renderReports() {
             '">' +
             a.followup +
             '</td><td style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' +
-            an(a.accountId) +
+            an(a.account_id) +
             "</td><td>" +
             tpb(a.type) +
             '</td><td style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#666">' +
@@ -1391,7 +1391,7 @@ function openM(type, recId, presetAcc) {
         return x.id === recId;
       });
   }
-  var sa = rec ? rec.accountId : presetAcc || "";
+  var sa = rec ? rec.account_id : presetAcc || "";
   var b = document.getElementById("mbox");
   if (type === "account") {
     b.innerHTML =
@@ -1595,7 +1595,7 @@ function saveCt(id) {
     //id: id || uid(),
     name: n,
     role: document.getElementById("fr").value,
-    account_id: document.getElementById("fa").value, //returning undefined account_id when creating new contact, need to fix
+    account_id: document.getElementById("fa").value || null, 
     phone: document.getElementById("fp").value,
     email: document.getElementById("fe").value,
   };
@@ -1616,7 +1616,7 @@ function saveOp(id) {
   var r = {
     //id: id || uid(),
     title: t,
-    account_id: document.getElementById("fa").value,
+    account_id: document.getElementById("fa").value || null,
     stage: document.getElementById("fs").value,
     value: document.getElementById("fv").value,
     hca: parseInt(document.getElementById("req_hca").value) || 0,
@@ -1713,7 +1713,7 @@ async function doAI() {
           ) +
           ". Today: " +
           tod() +
-          '. For create actions reply with confirmation + JSON {"action":"create","type":"activity","data":{type,date,accountId,notes,followup,significant:false}}. For questions reply plain English only.',
+          '. For create actions reply with confirmation + JSON {"action":"create","type":"activity","data":{type,date,account_id,notes,followup,significant:false}}. For questions reply plain English only.',
         messages: [{ role: "user", content: q }],
       }),
     });
