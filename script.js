@@ -279,7 +279,7 @@ var PG = {
 };
 
 function uid() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+  return undefined; // Placeholder for unique ID generation logic
 }
 
 // Get today's date in YYYY-MM-DD format
@@ -377,6 +377,8 @@ if (isCRMPage) {
 async function saveToSupabase() {
   try {
     const { accounts, contacts, opportunities, activities, submissions } = D;
+
+    //console.log("Accounts payload:", accounts);
 
     const newAccounts = accounts.filter((a) => !a.account_id);
     const existingAccounts = accounts.filter((a) => a.account_id);
@@ -1472,7 +1474,7 @@ function openM(type, recId, presetAcc) {
       '"></div><div class="fg"><label>Notes</label><textarea id="fno">' +
       (rec ? rec.notes || "" : "") +
       '</textarea></div><div class="mact"><button class="btn" onclick="closeM()">Cancel</button><button class="btn btnp" onclick="saveAcc(\'' +
-      (rec ? rec.id : "") +
+      (rec ? rec.account_id : "") +
       "')\">Save</button></div>";
   } else if (type === "contact") {
     b.innerHTML =
@@ -1623,8 +1625,9 @@ function closeM() {
 function saveAcc(id) {
   var n = document.getElementById("fn").value.trim();
   if (!n) return alert("Name required");
+  //console.log("Saving account:", { id, name: n });
   var r = {
-    //account_id: id || uid(),
+    account_id: id || uid(),
     name: n,
     type: document.getElementById("ft").value,
     status: document.getElementById("fst").value,
@@ -1633,10 +1636,13 @@ function saveAcc(id) {
   };
   if (id) {
     var i = D.accounts.findIndex(function (x) {
-      return x.id === id;
+      return x.account_id === id;
     });
     D.accounts[i] = r;
-  } else D.accounts.push(r);
+  } else {
+    D.accounts.push(r);
+  } 
+  //console.log("Saving account:", r);
   save();
   closeM();
   if (isCRMPage) renderAll();
@@ -1646,7 +1652,7 @@ function saveCt(id) {
   var n = document.getElementById("fn").value.trim();
   if (!n) return alert("Name required");
   var r = {
-    //id: id || uid(),
+    id: id || uid(),
     name: n,
     role: document.getElementById("fr").value,
     account_id: document.getElementById("fa").value || null,
@@ -1668,7 +1674,7 @@ function saveOp(id) {
   var t = document.getElementById("ft").value.trim();
   if (!t) return alert("Title required");
   var r = {
-    //id: id || uid(),
+    id: id || uid(),
     title: t,
     account_id: document.getElementById("fa").value || null,
     stage: document.getElementById("fs").value,
@@ -1698,7 +1704,7 @@ function saveOp(id) {
 
 function saveAct(id) {
   var r = {
-    //id: id || uid(),
+    id: id || uid(),
     type: document.getElementById("ft").value,
     date: document.getElementById("fd").value,
     account_id: document.getElementById("fa").value || null,
@@ -1722,7 +1728,7 @@ function saveSub(id) {
   var n = document.getElementById("fn").value.trim();
   if (!n) return alert("Name required");
   var r = {
-    //id: id || uid(),
+    id: id || uid(),
     candidate_name: n,
     role: document.getElementById("fr").value,
     account_id: document.getElementById("fa").value || null,
