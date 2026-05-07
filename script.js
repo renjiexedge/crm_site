@@ -373,7 +373,7 @@ if (isCRMPage) {
   loadCrmData();
 }
 
-//need to add for contacts, opportunities, activities, submissions
+// Save CRM data to Supabase, handling both new and existing records
 async function saveToSupabase() {
   try {
     const { accounts, contacts, opportunities, activities, submissions } = D;
@@ -463,11 +463,6 @@ async function saveToSupabase() {
     // ]);
 
     //const error = results.find((r) => r.error)?.error;
-
-    if (error) {
-      console.error("Error saving CRM data:", error);
-      return;
-    }
 
     console.log("Data saved successfully");
   } catch (err) {
