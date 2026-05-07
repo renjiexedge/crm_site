@@ -378,95 +378,106 @@ async function saveToSupabase() {
   try {
     const { accounts, contacts, opportunities, activities, submissions } = D;
 
-    // Separate new vs existing records
     const newAccounts = accounts.filter((a) => !a.account_id);
     const existingAccounts = accounts.filter((a) => a.account_id);
+
     const newContacts = contacts.filter((c) => !c.id);
     const existingContacts = contacts.filter((c) => c.id);
+
     const newOpportunities = opportunities.filter((o) => !o.id);
     const existingOpportunities = opportunities.filter((o) => o.id);
+
     const newActivities = activities.filter((a) => !a.id);
     const existingActivities = activities.filter((a) => a.id);
+
     const newSubmissions = submissions.filter((s) => !s.id);
     const existingSubmissions = submissions.filter((s) => s.id);
 
-    // Insert new records
-    if (newAccounts.length > 0) {
-      const { error: insertError } = await supabase
-        .from("accounts")
-        .insert(newAccounts);
-      if (insertError) throw insertError;
+    const ops = [];
+    console.log("contacts:", {
+  newCount: newContacts.length,
+  existingCount: existingContacts.length
+});
+    if (newAccounts.length) {
+      ops.push(
+        supabase.from("accounts").insert(newAccounts).then(({ error }) => {
+          if (error) throw new Error(`accounts insert: ${error.message}`);
+        })
+      );
     }
-    if (newContacts.length > 0) {
-      const { error: insertError } = await supabase
-        .from("contacts")
-        .insert(newContacts);
-      if (insertError) throw insertError;
-    }
-    if (newOpportunities.length > 0) {
-      const { error: insertError } = await supabase
-        .from("opportunities")
-        .insert(newOpportunities);
-      if (insertError) throw insertError;
-    }
-    if (newActivities.length > 0) {
-      const { error: insertError } = await supabase
-        .from("activities")
-        .insert(newActivities);
-      if (insertError) throw insertError;
-    }
-    if (newSubmissions.length > 0) {
-      const { error: insertError } = await supabase
-        .from("submissions")
-        .insert(newSubmissions);
-      if (insertError) throw insertError;
+    if (existingAccounts.length) {
+      ops.push(
+        supabase.from("accounts").upsert(existingAccounts).then(({ error }) => {
+          if (error) throw new Error(`accounts upsert: ${error.message}`);
+        })
+      );
     }
 
-    // Update existing records
-    if (existingAccounts.length > 0) {
-      const { error: updateError } = await supabase
-        .from("accounts")
-        .upsert(existingAccounts);
-      if (updateError) throw updateError;
+    if (newContacts.length) {
+      ops.push(
+        supabase.from("contacts").insert(newContacts).then(({ error }) => {
+          if (error) throw new Error(`contacts insert: ${error.message}`);
+        })
+      );
     }
-    if (existingContacts.length > 0) {
-      const { error: updateError } = await supabase
-        .from("contacts")
-        .upsert(existingContacts);
-      if (updateError) throw updateError;
-    }
-    if (existingOpportunities.length > 0) {
-      const { error: updateError } = await supabase
-        .from("opportunities")
-        .upsert(existingOpportunities);
-      if (updateError) throw updateError;
-    }
-    if (existingActivities.length > 0) {
-      const { error: updateError } = await supabase
-        .from("activities")
-        .upsert(existingActivities);
-      if (updateError) throw updateError;
-    }
-    if (existingSubmissions.length > 0) {
-      const { error: updateError } = await supabase
-        .from("submissions")
-        .upsert(existingSubmissions);
-      if (updateError) throw updateError;
+    if (existingContacts.length) {
+      ops.push(
+        supabase.from("contacts").upsert(existingContacts).then(({ error }) => {
+          if (error) throw new Error(`contacts upsert: ${error.message}`);
+        })
+      );
     }
 
-    // const results = await Promise.all([
-    //   supabase.from("accounts").upsert(accounts),
-    //   supabase.from("contacts").upsert(contacts),
-    //   supabase.from("opportunities").upsert(opportunities),
-    //   supabase.from("activities").upsert(activities),
-    //   supabase.from("submissions").upsert(submissions),
-    // ]);
+    if (newOpportunities.length) {
+      ops.push(
+        supabase.from("opportunities").insert(newOpportunities).then(({ error }) => {
+          if (error) throw new Error(`opportunities insert: ${error.message}`);
+        })
+      );
+    }
+    if (existingOpportunities.length) {
+      ops.push(
+        supabase.from("opportunities").upsert(existingOpportunities).then(({ error }) => {
+          if (error) throw new Error(`opportunities upsert: ${error.message}`);
+        })
+      );
+    }
 
-    //const error = results.find((r) => r.error)?.error;
+    if (newActivities.length) {
+      ops.push(
+        supabase.from("activities").insert(newActivities).then(({ error }) => {
+          if (error) throw new Error(`activities insert: ${error.message}`);
+        })
+      );
+    }
+    if (existingActivities.length) {
+      ops.push(
+        supabase.from("activities").upsert(existingActivities).then(({ error }) => {
+          if (error) throw new Error(`activities upsert: ${error.message}`);
+        })
+      );
+    }
 
+    if (newSubmissions.length) {
+      ops.push(
+        supabase.from("submissions").insert(newSubmissions).then(({ error }) => {
+          if (error) throw new Error(`submissions insert: ${error.message}`);
+        })
+      );
+    }
+    if (existingSubmissions.length) {
+      ops.push(
+        supabase.from("submissions").upsert(existingSubmissions).then(({ error }) => {
+          if (error) throw new Error(`submissions upsert: ${error.message}`);
+        })
+      );
+    }
+
+    await Promise.all(ops);
     console.log("Data saved successfully");
   } catch (err) {
     console.error("Unexpected error:", err);
+    throw err;
   }
 }
 
@@ -1353,13 +1364,16 @@ function renderReports() {
 }
 
 function del(type, id) {
-  if (!confirm("Delete?")) return;
-  D[type] = D[type].filter(function (r) {
-    return r.id !== id;
-  });
-  save();
+  if (!confirm("Delete this record?")) return;
+
+  console.log("Deleting:", type, id);
+  D[type] = D[type].filter((r) => r.id !== id && r.account_id !== id);
+  console.log("After delete:", D[type]);
+
+  save().catch((err) => console.error("Save failed after delete:", err));
   if (isCRMPage) renderAll();
 }
+
 function aOpts(sel) {
   return D.accounts
     .map(function (a) {
@@ -1772,5 +1786,5 @@ if (typeof window !== "undefined") {
   });
 }
 
-//need to Fix Contacts not creating properly.
+//need to add delete function for supabase records, currently only deletes from local data and then saves, but doesn't handle deletion of related records (e.g. deleting an account should also delete related contacts, opps, activities, subs).
 //Need to launch to live to check if the database functions as expected. Test(create, read, update,delete) in live environment.
