@@ -396,82 +396,114 @@ async function saveToSupabase() {
     const existingSubmissions = submissions.filter((s) => s.id);
 
     const ops = [];
-  //   console.log("contacts:", {
-  // newCount: newContacts.length,
-  // existingCount: existingContacts.length
-  // });
+    //   console.log("contacts:", {
+    // newCount: newContacts.length,
+    // existingCount: existingContacts.length
+    // });
     if (newAccounts.length) {
       ops.push(
-        supabase.from("accounts").insert(newAccounts).then(({ error }) => {
-          if (error) throw new Error(`accounts insert: ${error.message}`);
-        })
+        supabase
+          .from("accounts")
+          .insert(newAccounts)
+          .then(({ error }) => {
+            if (error) throw new Error(`accounts insert: ${error.message}`);
+          }),
       );
     }
     if (existingAccounts.length) {
       ops.push(
-        supabase.from("accounts").upsert(existingAccounts).then(({ error }) => {
-          if (error) throw new Error(`accounts upsert: ${error.message}`);
-        })
+        supabase
+          .from("accounts")
+          .upsert(existingAccounts)
+          .then(({ error }) => {
+            if (error) throw new Error(`accounts upsert: ${error.message}`);
+          }),
       );
     }
 
     if (newContacts.length) {
       ops.push(
-        supabase.from("contacts").insert(newContacts).then(({ error }) => {
-          if (error) throw new Error(`contacts insert: ${error.message}`);
-        })
+        supabase
+          .from("contacts")
+          .insert(newContacts)
+          .then(({ error }) => {
+            if (error) throw new Error(`contacts insert: ${error.message}`);
+          }),
       );
     }
     if (existingContacts.length) {
       ops.push(
-        supabase.from("contacts").upsert(existingContacts).then(({ error }) => {
-          if (error) throw new Error(`contacts upsert: ${error.message}`);
-        })
+        supabase
+          .from("contacts")
+          .upsert(existingContacts)
+          .then(({ error }) => {
+            if (error) throw new Error(`contacts upsert: ${error.message}`);
+          }),
       );
     }
 
     if (newOpportunities.length) {
       ops.push(
-        supabase.from("opportunities").insert(newOpportunities).then(({ error }) => {
-          if (error) throw new Error(`opportunities insert: ${error.message}`);
-        })
+        supabase
+          .from("opportunities")
+          .insert(newOpportunities)
+          .then(({ error }) => {
+            if (error)
+              throw new Error(`opportunities insert: ${error.message}`);
+          }),
       );
     }
     if (existingOpportunities.length) {
       ops.push(
-        supabase.from("opportunities").upsert(existingOpportunities).then(({ error }) => {
-          if (error) throw new Error(`opportunities upsert: ${error.message}`);
-        })
+        supabase
+          .from("opportunities")
+          .upsert(existingOpportunities)
+          .then(({ error }) => {
+            if (error)
+              throw new Error(`opportunities upsert: ${error.message}`);
+          }),
       );
     }
 
     if (newActivities.length) {
       ops.push(
-        supabase.from("activities").insert(newActivities).then(({ error }) => {
-          if (error) throw new Error(`activities insert: ${error.message}`);
-        })
+        supabase
+          .from("activities")
+          .insert(newActivities)
+          .then(({ error }) => {
+            if (error) throw new Error(`activities insert: ${error.message}`);
+          }),
       );
     }
     if (existingActivities.length) {
       ops.push(
-        supabase.from("activities").upsert(existingActivities).then(({ error }) => {
-          if (error) throw new Error(`activities upsert: ${error.message}`);
-        })
+        supabase
+          .from("activities")
+          .upsert(existingActivities)
+          .then(({ error }) => {
+            if (error) throw new Error(`activities upsert: ${error.message}`);
+          }),
       );
     }
 
     if (newSubmissions.length) {
       ops.push(
-        supabase.from("submissions").insert(newSubmissions).then(({ error }) => {
-          if (error) throw new Error(`submissions insert: ${error.message}`);
-        })
+        supabase
+          .from("submissions")
+          .insert(newSubmissions)
+          .then(({ error }) => {
+            if (error) throw new Error(`submissions insert: ${error.message}`);
+          }),
       );
     }
     if (existingSubmissions.length) {
       ops.push(
-        supabase.from("submissions").upsert(existingSubmissions).then(({ error }) => {
-          if (error) throw new Error(`submissions upsert: ${error.message}`);
-        })
+        supabase
+          .from("submissions")
+          .upsert(existingSubmissions)
+          .then(({ error }) => {
+            if (error) throw new Error(`submissions upsert: ${error.message}`);
+          }),
       );
     }
 
@@ -498,12 +530,17 @@ async function delToSupabase(type, id) {
       throw new Error(`Unknown delete type: ${type}`);
     }
     if (type === "accounts") {
-      const {error: deleteRelatedError} = await supabase.from("accounts").delete().eq("account_id", id);
-      if (deleteRelatedError) throw new Error(`Error deleting related accounts: ${deleteRelatedError.message}`);
-    }else{
+      const { error: deleteRelatedError } = await supabase
+        .from("accounts")
+        .delete()
+        .eq("account_id", id);
+      if (deleteRelatedError)
+        throw new Error(
+          `Error deleting related accounts: ${deleteRelatedError.message}`,
+        );
+    } else {
       const { error } = await supabase.from(table).delete().eq("id", id);
     }
-
 
     console.log(`Deleted from Supabase: ${table} ${id}`);
   } catch (err) {
@@ -1403,7 +1440,7 @@ async function del(type, id) {
 
   try {
     await delToSupabase(type, id);
-  }catch (error) {
+  } catch (error) {
     console.error("Error deleting from Supabase:", error);
     alert("Failed to delete record from database. Please try again.");
   }
@@ -1626,22 +1663,34 @@ function saveAcc(id) {
   var n = document.getElementById("fn").value.trim();
   if (!n) return alert("Name required");
   //console.log("Saving account:", { id, name: n });
-  var r = {
-    account_id: id || uid(),
-    name: n,
-    type: document.getElementById("ft").value,
-    status: document.getElementById("fst").value,
-    address: document.getElementById("fa").value,
-    notes: document.getElementById("fno").value,
-  };
+
   if (id) {
+    var r = {
+      account_id: id,
+      name: n,
+      type: document.getElementById("ft").value,
+      status: document.getElementById("fst").value,
+      address: document.getElementById("fa").value,
+      notes: document.getElementById("fno").value,
+    };
     var i = D.accounts.findIndex(function (x) {
       return x.account_id === id;
     });
-    D.accounts[i] = r;
+    if (i >= 0) {
+      D.accounts[i] = r;
+    } else {
+      D.accounts.push(r);
+    }
   } else {
+    var r = {
+      name: n,
+      type: document.getElementById("ft").value,
+      status: document.getElementById("fst").value,
+      address: document.getElementById("fa").value,
+      notes: document.getElementById("fno").value,
+    };
     D.accounts.push(r);
-  } 
+  }
   //console.log("Saving account:", r);
   save();
   closeM();
@@ -1651,20 +1700,30 @@ function saveAcc(id) {
 function saveCt(id) {
   var n = document.getElementById("fn").value.trim();
   if (!n) return alert("Name required");
-  var r = {
-    id: id || uid(),
-    name: n,
-    role: document.getElementById("fr").value,
-    account_id: document.getElementById("fa").value || null,
-    phone: document.getElementById("fp").value,
-    email: document.getElementById("fe").value,
-  };
+
   if (id) {
+    var r = {
+      id: id || uid(),
+      name: n,
+      role: document.getElementById("fr").value,
+      account_id: document.getElementById("fa").value || null,
+      phone: document.getElementById("fp").value,
+      email: document.getElementById("fe").value,
+    };
     var i = D.contacts.findIndex(function (x) {
       return x.id === id;
     });
     D.contacts[i] = r;
-  } else D.contacts.push(r);
+  } else {
+    var r = {
+      name: n,
+      role: document.getElementById("fr").value,
+      account_id: document.getElementById("fa").value || null,
+      phone: document.getElementById("fp").value,
+      email: document.getElementById("fe").value,
+    };
+    D.contacts.push(r);
+  }
   save();
   closeM();
   if (isCRMPage) renderAll();
@@ -1673,52 +1732,83 @@ function saveCt(id) {
 function saveOp(id) {
   var t = document.getElementById("ft").value.trim();
   if (!t) return alert("Title required");
-  var r = {
-    id: id || uid(),
-    title: t,
-    account_id: document.getElementById("fa").value || null,
-    stage: document.getElementById("fs").value,
-    value: document.getElementById("fv").value,
-    hca: parseInt(document.getElementById("req_hca").value) || 0,
-    na: parseInt(document.getElementById("req_na").value) || 0,
-    en: parseInt(document.getElementById("req_en").value) || 0,
-    sn: parseInt(document.getElementById("req_sn").value) || 0,
-    others: parseInt(document.getElementById("req_others").value) || 0,
-    hca_f: parseInt(document.getElementById("fil_hca_f").value) || 0,
-    na_f: parseInt(document.getElementById("fil_na_f").value) || 0,
-    en_f: parseInt(document.getElementById("fil_en_f").value) || 0,
-    sn_f: parseInt(document.getElementById("fil_sn_f").value) || 0,
-    others_f: parseInt(document.getElementById("fil_others_f").value) || 0,
-    notes: document.getElementById("fno").value,
-  };
+
   if (id) {
+    var r = {
+      id: id || uid(),
+      title: t,
+      account_id: document.getElementById("fa").value || null,
+      stage: document.getElementById("fs").value,
+      value: document.getElementById("fv").value,
+      hca: parseInt(document.getElementById("req_hca").value) || 0,
+      na: parseInt(document.getElementById("req_na").value) || 0,
+      en: parseInt(document.getElementById("req_en").value) || 0,
+      sn: parseInt(document.getElementById("req_sn").value) || 0,
+      others: parseInt(document.getElementById("req_others").value) || 0,
+      hca_f: parseInt(document.getElementById("fil_hca_f").value) || 0,
+      na_f: parseInt(document.getElementById("fil_na_f").value) || 0,
+      en_f: parseInt(document.getElementById("fil_en_f").value) || 0,
+      sn_f: parseInt(document.getElementById("fil_sn_f").value) || 0,
+      others_f: parseInt(document.getElementById("fil_others_f").value) || 0,
+      notes: document.getElementById("fno").value,
+    };
     var i = D.opportunities.findIndex(function (x) {
       return x.id === id;
     });
     D.opportunities[i] = r;
-  } else D.opportunities.push(r);
+  } else {
+    var r = {
+      title: t,
+      account_id: document.getElementById("fa").value || null,
+      stage: document.getElementById("fs").value,
+      value: document.getElementById("fv").value,
+      hca: parseInt(document.getElementById("req_hca").value) || 0,
+      na: parseInt(document.getElementById("req_na").value) || 0,
+      en: parseInt(document.getElementById("req_en").value) || 0,
+      sn: parseInt(document.getElementById("req_sn").value) || 0,
+      others: parseInt(document.getElementById("req_others").value) || 0,
+      hca_f: parseInt(document.getElementById("fil_hca_f").value) || 0,
+      na_f: parseInt(document.getElementById("fil_na_f").value) || 0,
+      en_f: parseInt(document.getElementById("fil_en_f").value) || 0,
+      sn_f: parseInt(document.getElementById("fil_sn_f").value) || 0,
+      others_f: parseInt(document.getElementById("fil_others_f").value) || 0,
+      notes: document.getElementById("fno").value,
+    };
+    D.opportunities.push(r);
+  }
   save();
   closeM();
   if (isCRMPage) renderAll();
 }
 
 function saveAct(id) {
-  var r = {
-    id: id || uid(),
-    type: document.getElementById("ft").value,
-    date: document.getElementById("fd").value,
-    account_id: document.getElementById("fa").value || null,
-    notes: document.getElementById("fno").value,
-    followup: document.getElementById("ffu").value,
-    significant: document.getElementById("fsig").checked,
-    done: false,
-  };
   if (id) {
+    var r = {
+      id: id || uid(),
+      type: document.getElementById("ft").value,
+      date: document.getElementById("fd").value,
+      account_id: document.getElementById("fa").value || null,
+      notes: document.getElementById("fno").value,
+      followup: document.getElementById("ffu").value,
+      significant: document.getElementById("fsig").checked,
+      done: false,
+    };
     var i = D.activities.findIndex(function (x) {
       return x.id === id;
     });
     D.activities[i] = r;
-  } else D.activities.push(r);
+  } else {
+    var r = {
+      type: document.getElementById("ft").value,
+      date: document.getElementById("fd").value,
+      account_id: document.getElementById("fa").value || null,
+      notes: document.getElementById("fno").value,
+      followup: document.getElementById("ffu").value,
+      significant: document.getElementById("fsig").checked,
+      done: false,
+    };
+    D.activities.push(r);
+  }
   save();
   closeM();
   if (isCRMPage) renderAll();
@@ -1727,21 +1817,32 @@ function saveAct(id) {
 function saveSub(id) {
   var n = document.getElementById("fn").value.trim();
   if (!n) return alert("Name required");
-  var r = {
-    id: id || uid(),
-    candidate_name: n,
-    role: document.getElementById("fr").value,
-    account_id: document.getElementById("fa").value || null,
-    status: document.getElementById("fss").value,
-    rejection: document.getElementById("frej").value,
-    notes: document.getElementById("fno").value,
-  };
+
   if (id) {
+    var r = {
+      id: id || uid(),
+      candidate_name: n,
+      role: document.getElementById("fr").value,
+      account_id: document.getElementById("fa").value || null,
+      status: document.getElementById("fss").value,
+      rejection: document.getElementById("frej").value,
+      notes: document.getElementById("fno").value,
+    };
     var i = D.submissions.findIndex(function (x) {
       return x.id === id;
     });
     D.submissions[i] = r;
-  } else D.submissions.push(r);
+  } else {
+    var r = {
+      candidate_name: n,
+      role: document.getElementById("fr").value,
+      account_id: document.getElementById("fa").value || null,
+      status: document.getElementById("fss").value,
+      rejection: document.getElementById("frej").value,
+      notes: document.getElementById("fno").value,
+    };
+    D.submissions.push(r);
+  }
   save();
   closeM();
   if (isCRMPage) renderAll();
