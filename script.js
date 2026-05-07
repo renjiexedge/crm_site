@@ -482,7 +482,7 @@ async function save() {
 // Get account name by ID
 function an(id) {
   var a = D.accounts.find(function (x) {
-    return x.id === id;
+    return x.account_id === id;
   });
   return a ? a.name : "—";
 }
@@ -1767,6 +1767,5 @@ if (typeof window !== "undefined") {
 }
 
 
-
-//Need to test method i in letting supabase handle ID generation vs generating ID in frontend.
+//need to Fix Contacts not creating properly.
 //Need to launch to live to check if the database functions as expected. Test(create, read, update,delete) in live environment.
