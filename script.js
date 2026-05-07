@@ -355,7 +355,13 @@ async function getCrmData() {
   return D;
 }
 
-let D = { accounts: [], contacts: [], opportunities: [], activities: [], submissions: [] };
+let D = {
+  accounts: [],
+  contacts: [],
+  opportunities: [],
+  activities: [],
+  submissions: [],
+};
 
 async function loadCrmData() {
   D = await getCrmData();
@@ -373,78 +379,77 @@ async function saveToSupabase() {
     const { accounts, contacts, opportunities, activities, submissions } = D;
 
     // Separate new vs existing records
-    const newAccounts = accounts.filter(a => !a.account_id);
-    const existingAccounts = accounts.filter(a => a.account_id);
-    const newContacts = contacts.filter(c => !c.id);
-    const existingContacts = contacts.filter(c => c.id);
-    const newOpportunities = opportunities.filter(o => !o.id);
-    const existingOpportunities = opportunities.filter(o => o.id);
-    const newActivities = activities.filter(a => !a.id);
-    const existingActivities = activities.filter(a => a.id);
-    const newSubmissions = submissions.filter(s => !s.id);
-    const existingSubmissions = submissions.filter(s => s.id);
+    const newAccounts = accounts.filter((a) => !a.account_id);
+    const existingAccounts = accounts.filter((a) => a.account_id);
+    const newContacts = contacts.filter((c) => !c.id);
+    const existingContacts = contacts.filter((c) => c.id);
+    const newOpportunities = opportunities.filter((o) => !o.id);
+    const existingOpportunities = opportunities.filter((o) => o.id);
+    const newActivities = activities.filter((a) => !a.id);
+    const existingActivities = activities.filter((a) => a.id);
+    const newSubmissions = submissions.filter((s) => !s.id);
+    const existingSubmissions = submissions.filter((s) => s.id);
 
     // Insert new records
     if (newAccounts.length > 0) {
       const { error: insertError } = await supabase
-        .from('accounts')
+        .from("accounts")
         .insert(newAccounts);
       if (insertError) throw insertError;
     }
     if (newContacts.length > 0) {
       const { error: insertError } = await supabase
-        .from('contacts')
+        .from("contacts")
         .insert(newContacts);
       if (insertError) throw insertError;
     }
     if (newOpportunities.length > 0) {
       const { error: insertError } = await supabase
-        .from('opportunities')
+        .from("opportunities")
         .insert(newOpportunities);
       if (insertError) throw insertError;
     }
     if (newActivities.length > 0) {
       const { error: insertError } = await supabase
-        .from('activities')
+        .from("activities")
         .insert(newActivities);
       if (insertError) throw insertError;
     }
     if (newSubmissions.length > 0) {
       const { error: insertError } = await supabase
-        .from('submissions')
+        .from("submissions")
         .insert(newSubmissions);
       if (insertError) throw insertError;
     }
-    
 
-        // Update existing records
+    // Update existing records
     if (existingAccounts.length > 0) {
       const { error: updateError } = await supabase
-        .from('accounts')
+        .from("accounts")
         .upsert(existingAccounts);
       if (updateError) throw updateError;
     }
     if (existingContacts.length > 0) {
       const { error: updateError } = await supabase
-        .from('contacts')
+        .from("contacts")
         .upsert(existingContacts);
       if (updateError) throw updateError;
     }
     if (existingOpportunities.length > 0) {
       const { error: updateError } = await supabase
-        .from('opportunities')
+        .from("opportunities")
         .upsert(existingOpportunities);
       if (updateError) throw updateError;
     }
     if (existingActivities.length > 0) {
       const { error: updateError } = await supabase
-        .from('activities')
+        .from("activities")
         .upsert(existingActivities);
       if (updateError) throw updateError;
     }
     if (existingSubmissions.length > 0) {
       const { error: updateError } = await supabase
-        .from('submissions')
+        .from("submissions")
         .upsert(existingSubmissions);
       if (updateError) throw updateError;
     }
@@ -477,7 +482,7 @@ async function save() {
     await loadCrmData(); // Refresh local data after saving
     renderAll(); // Re-render the UI with updated data
   } catch (e) {}
-};
+}
 
 // Get account name by ID
 function an(id) {
@@ -578,14 +583,14 @@ function go(p) {
 }
 
 window.go = go;
-window.godashboard = () => go('dashboard');
-window.goaccounts = () => go('accounts');
-window.gocontacts = () => go('contacts');
-window.goopportunities = () => go('opportunities');
-window.gopipeline = () => go('pipeline');
-window.goactivities = () => go('activities');
-window.gosubmissions = () => go('submissions');
-window.goreports = () => go('reports');
+window.godashboard = () => go("dashboard");
+window.goaccounts = () => go("accounts");
+window.gocontacts = () => go("contacts");
+window.goopportunities = () => go("opportunities");
+window.gopipeline = () => go("pipeline");
+window.goactivities = () => go("activities");
+window.gosubmissions = () => go("submissions");
+window.goreports = () => go("reports");
 
 function backToList() {
   cur360 = null;
@@ -1379,17 +1384,23 @@ function aOpts(sel) {
 function openM(type, recId, presetAcc) {
   var rec = null;
   if (recId) {
-    var src = {
-      account: D.accounts,
-      contact: D.contacts,
-      opportunity: D.opportunities,
-      activity: D.activities,
-      submission: D.submissions,
-    }[type];
-    if (src)
-      rec = src.find(function (x) {
-        return x.id === recId;
+    if (type === "account") {
+      rec = D.accounts.find(function (x) {
+        return x.account_id === recId;
       });
+    } else {
+      var src = {
+        contact: D.contacts,
+        opportunity: D.opportunities,
+        activity: D.activities,
+        submission: D.submissions,
+      }[type];
+      if (src) {
+        rec = src.find(function (x) {
+          return x.id === recId;
+        });
+      }
+    }
   }
   var sa = rec ? rec.account_id : presetAcc || "";
   var b = document.getElementById("mbox");
@@ -1595,7 +1606,7 @@ function saveCt(id) {
     //id: id || uid(),
     name: n,
     role: document.getElementById("fr").value,
-    account_id: document.getElementById("fa").value || null, 
+    account_id: document.getElementById("fa").value || null,
     phone: document.getElementById("fp").value,
     email: document.getElementById("fe").value,
   };
@@ -1647,7 +1658,7 @@ function saveAct(id) {
     //id: id || uid(),
     type: document.getElementById("ft").value,
     date: document.getElementById("fd").value,
-    account_id: document.getElementById("fa").value,
+    account_id: document.getElementById("fa").value || null,
     notes: document.getElementById("fno").value,
     followup: document.getElementById("ffu").value,
     significant: document.getElementById("fsig").checked,
@@ -1671,7 +1682,7 @@ function saveSub(id) {
     //id: id || uid(),
     candidate_name: n,
     role: document.getElementById("fr").value,
-    account_id: document.getElementById("fa").value,
+    account_id: document.getElementById("fa").value || null,
     status: document.getElementById("fss").value,
     rejection: document.getElementById("frej").value,
     notes: document.getElementById("fno").value,
@@ -1765,7 +1776,6 @@ if (typeof window !== "undefined") {
     del,
   });
 }
-
 
 //need to Fix Contacts not creating properly.
 //Need to launch to live to check if the database functions as expected. Test(create, read, update,delete) in live environment.
