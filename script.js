@@ -394,10 +394,10 @@ async function saveToSupabase() {
     const existingSubmissions = submissions.filter((s) => s.id);
 
     const ops = [];
-    console.log("contacts:", {
-  newCount: newContacts.length,
-  existingCount: existingContacts.length
-});
+  //   console.log("contacts:", {
+  // newCount: newContacts.length,
+  // existingCount: existingContacts.length
+  // });
     if (newAccounts.length) {
       ops.push(
         supabase.from("accounts").insert(newAccounts).then(({ error }) => {
@@ -477,6 +477,35 @@ async function saveToSupabase() {
     console.log("Data saved successfully");
   } catch (err) {
     console.error("Unexpected error:", err);
+    throw err;
+  }
+}
+
+async function delToSupabase(type, id) {
+  try {
+    const tableMap = {
+      accounts: "accounts",
+      contacts: "contacts",
+      opportunities: "opportunities",
+      activities: "activities",
+      submissions: "submissions",
+    };
+
+    const table = tableMap[type];
+    if (!table) {
+      throw new Error(`Unknown delete type: ${type}`);
+    }
+    if (type === "accounts") {
+      const {error: deleteRelatedError} = await supabase.from("accounts").delete().eq("account_id", id);
+      if (deleteRelatedError) throw new Error(`Error deleting related accounts: ${deleteRelatedError.message}`);
+    }else{
+      const { error } = await supabase.from(table).delete().eq("id", id);
+    }
+
+
+    console.log(`Deleted from Supabase: ${table} ${id}`);
+  } catch (err) {
+    console.error(`Error deleting ${type} ${id}:`, err);
     throw err;
   }
 }
@@ -1363,14 +1392,19 @@ function renderReports() {
   }).join("");
 }
 
-function del(type, id) {
+async function del(type, id) {
   if (!confirm("Delete this record?")) return;
 
   console.log("Deleting:", type, id);
   D[type] = D[type].filter((r) => r.id !== id && r.account_id !== id);
   console.log("After delete:", D[type]);
 
-  save().catch((err) => console.error("Save failed after delete:", err));
+  try {
+    await delToSupabase(type, id);
+  }catch (error) {
+    console.error("Error deleting from Supabase:", error);
+    alert("Failed to delete record from database. Please try again.");
+  }
   if (isCRMPage) renderAll();
 }
 
