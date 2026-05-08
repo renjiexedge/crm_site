@@ -17,6 +17,13 @@ function validateLogin(email, password) {
   return email === VALID_EMAIL && password === VALID_PASSWORD;
 }
 
+
+// Attach login listener
+const form = document.querySelector(".login");
+if (form) {
+  form.addEventListener("submit", handleLogin);
+}
+
 // Login form submit handler
 function handleLogin(event) {
   event.preventDefault();
@@ -37,192 +44,6 @@ function handleLogin(event) {
   window.location.href = "homecare_crm.html";
 }
 
-// Attach login listener
-const form = document.querySelector(".login");
-if (form) {
-  form.addEventListener("submit", handleLogin);
-}
-
-// Create task handler
-async function submitTask(event) {
-  event.preventDefault();
-
-  const taskTitle = document.getElementById("task-title")?.value.trim() || "";
-  const taskDesc = document.getElementById("task-desc")?.value.trim() || "";
-
-  const { error } = await supabase
-    .from("TaskManager")
-    .insert([{ Task_Title: taskTitle, Task_Description: taskDesc }]);
-
-  if (error) {
-    console.error("Error submitting task:", error.message);
-    alert("Error submitting task.");
-  } else {
-    alert("Task submitted successfully!");
-    await loadTasks(); // Refresh the task list after adding a new task.
-  }
-}
-
-// Attach task create listener
-const tasks = document.querySelector(".task-manager");
-if (tasks) {
-  tasks.addEventListener("submit", submitTask);
-}
-
-const taskList = document.getElementById("task-list");
-
-// Load tasks from Supabase and render the task list
-async function loadTasks() {
-  const { data: tasks, error } = await supabase
-    .from("TaskManager")
-    .select("id, Task_Title, Task_Description");
-
-  const container = document.getElementById("task-list");
-  if (!container) return;
-
-  if (error) {
-    console.error("Error loading tasks:", error.message);
-    container.innerHTML = "<p>Failed to load tasks.</p>";
-    return;
-  }
-
-  container.innerHTML = tasks
-    .map(
-      (task) => `
-                <div class="task-item" data-id="${task.id}">
-                  <h4>${task.Task_Title}</h4>
-                  <p>${task.Task_Description}</p>
-                  <button type="button" class="edit-btn" data-id="${task.id}">Edit</button>
-                  <button type="button" class="delete-btn" data-id="${task.id}">Delete</button>
-                </div>
-              `,
-    )
-    .join("");
-}
-
-// Load tasks when the page is first loaded.
-if (taskList) {
-  document.addEventListener("DOMContentLoaded", loadTasks);
-}
-
-// Delete a task by ID
-async function deleteTask(id) {
-  const { error } = await supabase.from("TaskManager").delete().eq("id", id);
-
-  if (error) {
-    console.error("Error deleting task:", error.message);
-    alert("Error deleting task.");
-  } else {
-    alert("Task deleted successfully!");
-    await loadTasks(); // Refresh the task list after deleting a task.
-  }
-}
-
-// Edit form state tracker
-let activeEditForm = null;
-
-// Close the active edit form if one exists
-function closeEditForm() {
-  if (activeEditForm) {
-    activeEditForm.remove();
-    activeEditForm = null;
-  }
-}
-
-// Open an inline edit form for the selected task
-function openEditForm(taskItem, id, currentTitle, currentDesc) {
-  closeEditForm();
-
-  const form = document.createElement("form");
-  form.className = "edit-form";
-  form.innerHTML = `
-        <div class="edit-form-row">
-          <label>Task title</label>
-          <input type="text" data-edit="title" placeholder="${currentTitle}" />
-        </div>
-        <div class="edit-form-row">
-          <label>Task description</label>
-          <input type="text" data-edit="desc" placeholder="${currentDesc}" />
-        </div>
-        <div class="edit-form-actions">
-          <button type="button" class="confirm-edit-btn">Save</button>
-          <button type="button" class="cancel-edit-btn">Cancel</button>
-        </div>
-      `;
-
-  form.addEventListener("submit", (event) => {
-    event.preventDefault();
-  });
-
-  const titleInput = form.querySelector('[data-edit="title"]');
-  const descInput = form.querySelector('[data-edit="desc"]');
-  const confirmBtn = form.querySelector(".confirm-edit-btn");
-  const cancelBtn = form.querySelector(".cancel-edit-btn");
-
-  confirmBtn.addEventListener("click", async () => {
-    const newTitle = titleInput.value.trim() || currentTitle;
-    const newDesc = descInput.value.trim() || currentDesc;
-
-    if (!newTitle && !newDesc) {
-      alert("Please provide a task title or description to update.");
-      return;
-    }
-
-    await editTask(id, newTitle, newDesc);
-    closeEditForm();
-  });
-
-  cancelBtn.addEventListener("click", (event) => {
-    event.preventDefault();
-    closeEditForm();
-  });
-
-  taskItem.appendChild(form);
-  activeEditForm = form;
-}
-
-// Task list click handler for edit and delete actions
-if (taskList) {
-  taskList.addEventListener("click", (event) => {
-    const btn = event.target;
-
-    if (btn.classList.contains("edit-btn")) {
-      const id = btn.getAttribute("data-id");
-      const taskItem = btn.closest(".task-item");
-      if (id && taskItem) {
-        const currentTitle =
-          taskItem.querySelector("h4")?.textContent.trim() || "";
-        const currentDesc =
-          taskItem.querySelector("p")?.textContent.trim() || "";
-        openEditForm(taskItem, id, currentTitle, currentDesc);
-      }
-      return;
-    }
-
-    if (btn.classList.contains("delete-btn")) {
-      const id = btn.getAttribute("data-id");
-      if (id) {
-        deleteTask(id);
-      }
-    }
-  });
-}
-
-// Update task in Supabase and refresh list
-async function editTask(id, newTitle, newDesc) {
-  const { error } = await supabase
-    .from("TaskManager")
-    .update({ Task_Title: newTitle, Task_Description: newDesc })
-    .eq("id", id);
-
-  if (error) {
-    console.error("Error editing task:", error.message);
-    alert("Error editing task.");
-  } else {
-    alert("Task edited successfully!");
-    await loadTasks(); // Refresh the task list after editing a task.
-  }
-}
 
 // CRM page functions
 const isCRMPage = document.body?.classList.contains("crm-page");
