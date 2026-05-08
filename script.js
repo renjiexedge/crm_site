@@ -1051,7 +1051,7 @@ function render360(id) {
         .map(function (s) {
           return (
             "<tr><td><b>" +
-            s.candidateName +
+            s.candidate_name +
             "</b></td><td>" +
             s.role +
             "</td><td>" +
@@ -1234,7 +1234,7 @@ function renderSubs() {
         .map(function (s) {
           return (
             "<tr><td><b>" +
-            s.candidateName +
+            s.candidate_name +
             "</b></td><td>" +
             an(s.account_id) +
             "</td><td>" +
@@ -1621,7 +1621,7 @@ function openM(type, recId, presetAcc) {
       "<h3>" +
       (rec ? "Edit" : "New") +
       ' submission</h3><div class="frow"><div class="fg"><label>Candidate *</label><input id="fn" value="' +
-      (rec ? rec.candidateName : "") +
+      (rec ? rec.candidate_name : "") +
       '"></div><div class="fg"><label>Role</label><select id="fr">' +
       POS.map(function (p) {
         return (
@@ -1927,5 +1927,6 @@ if (typeof window !== "undefined") {
   });
 }
 
-//need to add delete function for supabase records, currently only deletes from local data and then saves, but doesn't handle deletion of related records (e.g. deleting an account should also delete related contacts, opps, activities, subs).
-//Need to launch to live to check if the database functions as expected. Test(create, read, update,delete) in live environment.
+//Need to test Pipeline, Activities, Submissions and Reports sections.
+//Add acutal login authentication and user management using supabase auth.
+//remove test data from index.html.
