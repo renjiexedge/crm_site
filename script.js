@@ -1848,65 +1848,6 @@ function saveSub(id) {
   if (isCRMPage) renderAll();
 }
 
-// ============================================================
-// AI BAR — move API key to a backend function before going live
-// ============================================================
-async function doAI() {
-  var inp = document.getElementById("aiin"),
-    resp = document.getElementById("aimsg"),
-    q = inp.value.trim();
-  if (!q) return;
-  resp.style.display = "block";
-  resp.textContent = "Thinking...";
-  try {
-    var res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 500,
-        system:
-          "You are a CRM assistant for Homecare One Singapore. Accounts: " +
-          JSON.stringify(
-            D.accounts.map(function (a) {
-              return { id: a.id, name: a.name };
-            }),
-          ) +
-          ". Today: " +
-          tod() +
-          '. For create actions reply with confirmation + JSON {"action":"create","type":"activity","data":{type,date,account_id,notes,followup,significant:false}}. For questions reply plain English only.',
-        messages: [{ role: "user", content: q }],
-      }),
-    });
-    var d = await res.json(),
-      text = (d.content || [])
-        .filter(function (b) {
-          return b.type === "text";
-        })
-        .map(function (b) {
-          return b.text;
-        })
-        .join(""),
-      jm = text.match(/\{[\s\S]*?"action"[\s\S]*?\}/);
-    resp.textContent =
-      text.replace(/\{[\s\S]*?"action"[\s\S]*?\}/, "").trim() || "Done.";
-    if (jm) {
-      try {
-        var act = JSON.parse(jm[0]);
-        if (act.action === "create" && act.data) {
-          var rec = Object.assign({ id: uid() }, act.data);
-          if (act.type === "activity") D.activities.push(rec);
-          save();
-          if (isCRMPage) renderAll();
-          resp.textContent += " ✓ Saved.";
-        }
-      } catch (e) {}
-    }
-  } catch (e) {
-    resp.textContent = "AI error. Please try again.";
-  }
-  inp.value = "";
-}
 
 if (isCRMPage) renderAll();
 
@@ -1922,11 +1863,10 @@ if (typeof window !== "undefined") {
     saveOp,
     saveAct,
     saveSub,
-    doAI,
     del,
   });
 }
 
-//Need to test Pipeline, Activities, Submissions and Reports sections.
+
 //Add acutal login authentication and user management using supabase auth.
 //remove test data from index.html.
