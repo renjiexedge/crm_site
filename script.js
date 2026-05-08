@@ -225,7 +225,7 @@ async function editTask(id, newTitle, newDesc) {
 }
 
 // CRM page functions
-const isCRMPage = () => document.body?.classList.contains("crm-page");
+const isCRMPage = document.body?.classList.contains("crm-page");
 
 var STAGES = [
   "Prospect",
@@ -364,14 +364,19 @@ let D = {
 };
 
 async function loadCrmData() {
-  D = await getCrmData();
-  if (isCRMPage) renderAll();
+  if (isCRMPage) {
+    D = await getCrmData();
+    renderAll();
+  }
 }
 
 // Call it on load
-if (isCRMPage) {
-  loadCrmData();
-}
+document.addEventListener("DOMContentLoaded", async function () {
+  if (isCRMPage) {
+    await loadCrmData();
+  }
+});
+
 
 // Save CRM data to Supabase, handling both new and existing records
 async function saveToSupabase() {
@@ -680,6 +685,7 @@ function show360(id) {
 }
 
 function renderAll() {
+  if (!isCRMPage) return;
   renderDash();
   renderAccGrid();
   renderContacts();
@@ -692,6 +698,13 @@ function renderAll() {
 }
 
 function renderDash() {
+  const jobsEl = document.getElementById("dstats-jobs");
+  const hcEl = document.getElementById("dstats-hc");
+  const eqEl = document.getElementById("hc-equation");
+  const dactsEl = document.getElementById("dacts");
+  const dodEl = document.getElementById("dod");
+
+  if (!jobsEl || !hcEl || !eqEl || !dactsEl || !dodEl) return;
   var t = tod(),
     od = D.activities.filter(function (a) {
       return a.followup && a.followup <= t && !a.done;
@@ -715,6 +728,7 @@ function renderDash() {
       return s + filTotal(o);
     }, 0),
     totalOut = totalReq - totalFil;
+
   document.getElementById("dstats-jobs").innerHTML = [
     {
       l: "Open job orders",
@@ -1848,8 +1862,6 @@ function saveSub(id) {
   if (isCRMPage) renderAll();
 }
 
-
-if (isCRMPage) renderAll();
 
 if (typeof window !== "undefined") {
   Object.assign(window, {
