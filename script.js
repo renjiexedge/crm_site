@@ -9,15 +9,6 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 console.log("Supabase client initialized:", supabase);
 
-const VALID_EMAIL = "rhsnake@gmail.com";
-const VALID_PASSWORD = "abc123";
-
-// Login validation helper
-function validateLogin(email, password) {
-  return email === VALID_EMAIL && password === VALID_PASSWORD;
-}
-
-
 // Attach login listener
 const form = document.querySelector(".login");
 if (form) {
@@ -25,7 +16,7 @@ if (form) {
 }
 
 // Login form submit handler
-function handleLogin(event) {
+async function handleLogin(event) {
   event.preventDefault();
 
   const email = document.getElementById("email")?.value.trim() || "";
@@ -36,7 +27,8 @@ function handleLogin(event) {
     return;
   }
 
-  if (!validateLogin(email, password)) {
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) {
     alert("Invalid email or password.");
     return;
   }
@@ -186,17 +178,30 @@ let D = {
 
 async function loadCrmData() {
   if (isCRMPage) {
-    D = await getCrmData();
-    renderAll();
+    const result = await getCrmData();
+    if (result) {
+      D = result;
+      renderAll();
+    }
   }
 }
 
 // Call it on load
 document.addEventListener("DOMContentLoaded", async function () {
   if (isCRMPage) {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      window.location.href = "index.html";
+      return;
+    }
     await loadCrmData();
   }
 });
+
+async function logout() {
+  await supabase.auth.signOut();
+  window.location.href = "index.html";
+}
 
 
 // Save CRM data to Supabase, handling both new and existing records
@@ -1496,17 +1501,24 @@ function closeM() {
 
 function saveAcc(id) {
   var n = document.getElementById("fn").value.trim();
+  var type = document.getElementById("ft").value.trim();
+  var status = document.getElementById("fst").value.trim();
+  var address = document.getElementById("fa").value.trim();
+  var notes = document.getElementById("fno").value.trim();
   if (!n) return alert("Name required");
+  if (!type) return alert("Type is required");
+  if (!status) return alert("Status is required");
+  if (!address) return alert("Address is required");
   //console.log("Saving account:", { id, name: n });
 
   if (id) {
     var r = {
       account_id: id,
       name: n,
-      type: document.getElementById("ft").value,
-      status: document.getElementById("fst").value,
-      address: document.getElementById("fa").value,
-      notes: document.getElementById("fno").value,
+      type: type,
+      status: status,
+      address: address,
+      notes: notes,
     };
     var i = D.accounts.findIndex(function (x) {
       return x.account_id === id;
@@ -1519,10 +1531,10 @@ function saveAcc(id) {
   } else {
     var r = {
       name: n,
-      type: document.getElementById("ft").value,
-      status: document.getElementById("fst").value,
-      address: document.getElementById("fa").value,
-      notes: document.getElementById("fno").value,
+      type: type,
+      status: status,
+      address: address,
+      notes: notes,
     };
     D.accounts.push(r);
   }
@@ -1534,16 +1546,24 @@ function saveAcc(id) {
 
 function saveCt(id) {
   var n = document.getElementById("fn").value.trim();
+  var role = document.getElementById("fr").value.trim();
+  var account_id = document.getElementById("fa").value.trim();
+  var phone = document.getElementById("fp").value.trim();
+  var email = document.getElementById("fe").value.trim();
   if (!n) return alert("Name required");
+  if (!role) return alert("Role is required");
+  if (!account_id) return alert("Account is required");
+  if (!phone) return alert("Phone is required");
+  if (!email) return alert("Email is required");
 
   if (id) {
     var r = {
-      id: id || uid(),
+      id: id,
       name: n,
-      role: document.getElementById("fr").value,
-      account_id: document.getElementById("fa").value || null,
-      phone: document.getElementById("fp").value,
-      email: document.getElementById("fe").value,
+      role: role ,
+      account_id: account_id || null,
+      phone: phone,
+      email: email,
     };
     var i = D.contacts.findIndex(function (x) {
       return x.id === id;
@@ -1552,10 +1572,10 @@ function saveCt(id) {
   } else {
     var r = {
       name: n,
-      role: document.getElementById("fr").value,
-      account_id: document.getElementById("fa").value || null,
-      phone: document.getElementById("fp").value,
-      email: document.getElementById("fe").value,
+      role: role,
+      account_id: account_id || null,
+      phone: phone,
+      email: email,
     };
     D.contacts.push(r);
   }
@@ -1566,15 +1586,20 @@ function saveCt(id) {
 
 function saveOp(id) {
   var t = document.getElementById("ft").value.trim();
+  var account_id = document.getElementById("fa").value.trim();
+  var stage = document.getElementById("fs").value.trim();
+  var value = document.getElementById("fv").value.trim();
   if (!t) return alert("Title required");
+  if (!stage) return alert("Stage is required");
+  if (!value) return alert("Value is required");
 
   if (id) {
     var r = {
       id: id || uid(),
       title: t,
-      account_id: document.getElementById("fa").value || null,
-      stage: document.getElementById("fs").value,
-      value: document.getElementById("fv").value,
+      account_id: account_id || null,
+      stage: stage,
+      value: value,
       hca: parseInt(document.getElementById("req_hca").value) || 0,
       na: parseInt(document.getElementById("req_na").value) || 0,
       en: parseInt(document.getElementById("req_en").value) || 0,
@@ -1594,9 +1619,9 @@ function saveOp(id) {
   } else {
     var r = {
       title: t,
-      account_id: document.getElementById("fa").value || null,
-      stage: document.getElementById("fs").value,
-      value: document.getElementById("fv").value,
+      account_id: account_id || null,
+      stage: stage,
+      value: value,
       hca: parseInt(document.getElementById("req_hca").value) || 0,
       na: parseInt(document.getElementById("req_na").value) || 0,
       en: parseInt(document.getElementById("req_en").value) || 0,
@@ -1697,9 +1722,11 @@ if (typeof window !== "undefined") {
     saveAct,
     saveSub,
     del,
+    logout,
   });
 }
 
 
 //Add acutal login authentication and user management using supabase auth.
-//remove test data from index.html.
+//Fix the docs
+//continue data validation for activities and submissions.
