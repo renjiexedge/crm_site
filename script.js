@@ -789,6 +789,9 @@ function render360(id) {
     subs = D.submissions.filter(function (s) {
       return s.account_id === id;
     }),
+    emAccs = D.embassyAccreditations.filter(function (e) {
+      return e.account_id === id;
+    }),
     od = acts.filter(function (a) {
       return a.followup && a.followup <= t && !a.done;
     }).length,
@@ -935,6 +938,29 @@ function render360(id) {
         .join("") +
       "</tbody></table>"
     : '<div class="empty">No submissions</div>';
+  var eaHtml = emAccs.length
+    ? '<table><thead><tr><th style="width:26%">Name</th><th style="width:16%">Country</th><th style="width:14%">Validity</th><th style="width:16%">Expiry Date</th><th style="width:20%">Notes</th><th style="width:8%"></th></tr></thead><tbody>' +
+      emAccs
+        .map(function (e) {
+          return (
+            "<tr><td><b>" +
+            e.name +
+            "</b></td><td>" +
+            e.country +
+            "</td><td>" +
+            (e.validity || "—") +
+            "</td><td>" +
+            (e.expiry_date || "—") +
+            "</td><td>" +
+            (e.notes || "—") +
+            "</td><td><button class=\"btn\" onclick=\"openM('embassy','" +
+            e.id +
+            "')\">Edit</button></td></tr>"
+          );
+        })
+        .join("") +
+      "</tbody></table>"
+    : '<div class="empty">No accreditations</div>';
   document.getElementById("a360c").innerHTML =
     '<div class="a3hdr"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap"><div><div class="a3name">' +
     acc.name +
@@ -980,6 +1006,10 @@ function render360(id) {
     id +
     "')\">+ Add</button></div>" +
     ctHtml +
+    '</div><div class="a3sec a3full"><div class="a3sh"><span>Embassy Accreditations</span><button class="btn" onclick="openM(\'embassy\',null,\'' +
+    id +
+    "')\">+ Add</button></div>" +
+    eaHtml +
     '</div><div class="a3sec a3full"><div class="a3sh"><span>Job orders — headcount progress</span><button class="btn" onclick="openM(\'opportunity\',null,\'' +
     id +
     "')\">+ Add</button></div>" +
@@ -1415,7 +1445,9 @@ function openM(type, recId, presetAcc) {
     b.innerHTML =
       "<h3>" +
       (rec ? "Edit" : "New") +
-      ' accreditation</h3><div class="frow"><div class="fg"><label>Name *</label><input id="fn" value="' +
+      ' accreditation</h3><input type="hidden" id="fea" value="' +
+      (rec ? rec.account_id || "" : sa) +
+      '"><div class="frow"><div class="fg"><label>Name *</label><input id="fn" value="' +
       (rec ? rec.name : "") +
       '"></div><div class="fg"><label>Country *</label><input id="fco" value="' +
       (rec ? rec.country : "") +
@@ -1580,12 +1612,14 @@ function saveEmbassy(id) {
   var validity = document.getElementById("fv").value.trim();
   var expiry_date = document.getElementById("fed").value.trim();
   var notes = document.getElementById("fno").value.trim();
+  var account_id = document.getElementById("fea").value.trim() || null;
   if (!name) return alert("Name required");
   if (!country) return alert("Country required");
 
   if (id) {
     var r = {
       id: id,
+      account_id: account_id,
       name: name,
       country: country,
       validity: validity || null,
@@ -1599,6 +1633,7 @@ function saveEmbassy(id) {
     else D.embassyAccreditations.push(r);
   } else {
     var r = {
+      account_id: account_id,
       name: name,
       country: country,
       validity: validity || null,
