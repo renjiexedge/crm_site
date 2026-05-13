@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <title>Xedge Recruit</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css" />
     <script type="module" src="./script.js"></script>
   </head>
   <body class="crm-page">
@@ -11,6 +11,9 @@
       <div class="side">
         <div class="logo">Xedge Recruit</div>
         <button class="nav on" onclick="go('dashboard')">Dashboard</button>
+        <button class="nav" onclick="go('embassy')">
+          Embassy Accreditation
+        </button>
         <button class="nav" onclick="go('accounts')">Accounts</button>
         <button class="nav" onclick="go('contacts')">Contacts</button>
         <button class="nav" onclick="go('opportunities')">Opportunities</button>
@@ -49,6 +52,29 @@
                 </div>
                 <div class="card" id="dod"></div>
               </div>
+            </div>
+          </div>
+          <div class="pg" id="pg-embassy">
+            <div class="row">
+              <span class="ptitle">Embassy Accreditations</span
+              ><button class="btn btnp" onclick="openM('embassy')">
+                + Add accreditation
+              </button>
+            </div>
+            <div class="card">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width: 20%">Name</th>
+                    <th style="width: 20%">Country</th>
+                    <th style="width: 15%">Validity</th>
+                    <th style="width: 15%">Expiry date</th>
+                    <th style="width: 20%">Notes</th>
+                    <th style="width: 10%">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="ebtb"></tbody>
+              </table>
             </div>
           </div>
           <div class="pg" id="pg-accounts">

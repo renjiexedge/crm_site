@@ -36,7 +36,6 @@ async function handleLogin(event) {
   window.location.href = "homecare_crm.html";
 }
 
-
 // CRM page functions
 const isCRMPage = document.body?.classList.contains("crm-page");
 
@@ -82,6 +81,7 @@ var ACCT = ["Hospital", "Nursing Home", "Clinic", "Agency", "Healthcare Group"];
 var POS = ["HCA", "NA", "EN", "SN", "Others"];
 var PG = {
   dashboard: "Dashboard",
+  embassy: "Embassy Accreditation",
   accounts: "Accounts",
   contacts: "Contacts",
   opportunities: "Opportunities",
@@ -124,6 +124,9 @@ function filTotal(o) {
 }
 
 async function getCrmData() {
+  const { data: embassyAccreditations, error: embassyAccreditationsError } = await supabase
+    .from("embassy_accreditation")
+    .select("*");
   const { data: accounts, error: accountsError } = await supabase
     .from("accounts")
     .select("*");
@@ -141,6 +144,7 @@ async function getCrmData() {
     .select("*");
 
   if (
+    embassyAccreditationsError ||
     accountsError ||
     contactsError ||
     opportunitiesError ||
@@ -149,7 +153,8 @@ async function getCrmData() {
   ) {
     console.error(
       "Error fetching CRM data:",
-      accountsError ||
+      embassyAccreditationsError ||
+        accountsError ||
         contactsError ||
         opportunitiesError ||
         activitiesError ||
@@ -159,6 +164,7 @@ async function getCrmData() {
   }
 
   D = {
+    embassyAccreditations: embassyAccreditations,
     accounts: accounts,
     contacts: contacts,
     opportunities: opportunities,
@@ -169,6 +175,7 @@ async function getCrmData() {
 }
 
 let D = {
+  embassyAccreditations: [],
   accounts: [],
   contacts: [],
   opportunities: [],
@@ -189,7 +196,9 @@ async function loadCrmData() {
 // Call it on load
 document.addEventListener("DOMContentLoaded", async function () {
   if (isCRMPage) {
-    const { data: { session } } = await supabase.auth.getSession();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
     if (!session) {
       window.location.href = "index.html";
       return;
@@ -203,13 +212,10 @@ async function logout() {
   window.location.href = "index.html";
 }
 
-
 // Save CRM data to Supabase, handling both new and existing records
 async function saveToSupabase() {
   try {
-    const { accounts, contacts, opportunities, activities, submissions } = D;
-
-    //console.log("Accounts payload:", accounts);
+    const { accounts, contacts, opportunities, activities, submissions, embassyAccreditations } = D;
 
     const newAccounts = accounts.filter((a) => !a.account_id);
     const existingAccounts = accounts.filter((a) => a.account_id);
@@ -226,11 +232,31 @@ async function saveToSupabase() {
     const newSubmissions = submissions.filter((s) => !s.id);
     const existingSubmissions = submissions.filter((s) => s.id);
 
+    const newEmbassyAccreditations = embassyAccreditations.filter((e) => !e.id);
+    const existingEmbassyAccreditations = embassyAccreditations.filter((e) => e.id);
+
     const ops = [];
-    //   console.log("contacts:", {
-    // newCount: newContacts.length,
-    // existingCount: existingContacts.length
-    // });
+
+    if (newEmbassyAccreditations.length) {
+      ops.push(
+        supabase
+          .from("embassy_accreditation")
+          .insert(newEmbassyAccreditations)
+          .then(({ error }) => {
+            if (error) throw new Error(`embassy_accreditation insert: ${error.message}`);
+          }),
+      );
+    }
+    if (existingEmbassyAccreditations.length) {
+      ops.push(
+        supabase
+          .from("embassy_accreditation")
+          .upsert(existingEmbassyAccreditations)
+          .then(({ error }) => {
+            if (error) throw new Error(`embassy_accreditation upsert: ${error.message}`);
+          }),
+      );
+    }
     if (newAccounts.length) {
       ops.push(
         supabase
@@ -349,6 +375,7 @@ async function saveToSupabase() {
 async function delToSupabase(type, id) {
   try {
     const tableMap = {
+      embassyAccreditations: "embassy_accreditation",
       accounts: "accounts",
       contacts: "contacts",
       opportunities: "opportunities",
@@ -496,6 +523,7 @@ window.gopipeline = () => go("pipeline");
 window.goactivities = () => go("activities");
 window.gosubmissions = () => go("submissions");
 window.goreports = () => go("reports");
+window.goembassy = () => go("embassy");
 
 function backToList() {
   cur360 = null;
@@ -519,6 +547,7 @@ function renderAll() {
   renderPipeline();
   renderActs();
   renderSubs();
+  renderEmbassy();
   renderReports();
   if (cur360) render360(cur360);
 }
@@ -1092,6 +1121,34 @@ function renderSubs() {
     : '<tr><td colspan="5" class="empty">No submissions</td></tr>';
 }
 
+function renderEmbassy() {
+  var el = document.getElementById("ebtb");
+  if (!el) return;
+  el.innerHTML = D.embassyAccreditations.length
+    ? D.embassyAccreditations
+        .map(function (e) {
+          return (
+            "<tr><td><b>" +
+            e.name +
+            "</b></td><td>" +
+            e.country +
+            "</td><td>" +
+            (e.validity || "—") +
+            "</td><td>" +
+            (e.expiry_date || "—") +
+            "</td><td>" +
+            (e.notes || "—") +
+            "</td><td><button class=\"btn\" onclick=\"openM('embassy','" +
+            e.id +
+            "')\">Edit</button> <button class=\"btn btnd\" onclick=\"del('embassyAccreditations','" +
+            e.id +
+            "')\">Del</button></td></tr>"
+          );
+        })
+        .join("")
+    : '<tr><td colspan="6" class="empty">No accreditations</td></tr>';
+}
+
 function renderPipeline() {
   document.getElementById("pipeboard").innerHTML = STAGES.map(function (s) {
     var op = D.opportunities.filter(function (o) {
@@ -1312,6 +1369,7 @@ function openM(type, recId, presetAcc) {
       });
     } else {
       var src = {
+        embassy: D.embassyAccreditations,
         contact: D.contacts,
         opportunity: D.opportunities,
         activity: D.activities,
@@ -1352,6 +1410,23 @@ function openM(type, recId, presetAcc) {
       (rec ? rec.notes || "" : "") +
       '</textarea></div><div class="mact"><button class="btn" onclick="closeM()">Cancel</button><button class="btn btnp" onclick="saveAcc(\'' +
       (rec ? rec.account_id : "") +
+      "')\">Save</button></div>";
+  } else if (type === "embassy") {
+    b.innerHTML =
+      "<h3>" +
+      (rec ? "Edit" : "New") +
+      ' accreditation</h3><div class="frow"><div class="fg"><label>Name *</label><input id="fn" value="' +
+      (rec ? rec.name : "") +
+      '"></div><div class="fg"><label>Country *</label><input id="fco" value="' +
+      (rec ? rec.country : "") +
+      '"></div></div><div class="frow"><div class="fg"><label>Validity</label><input id="fv" value="' +
+      (rec ? rec.validity || "" : "") +
+      '"></div><div class="fg"><label>Expiry Date</label><input type="date" id="fed" value="' +
+      (rec ? rec.expiry_date || "" : "") +
+      '"></div></div><div class="fg"><label>Notes</label><textarea id="fno">' +
+      (rec ? rec.notes || "" : "") +
+      '</textarea></div><div class="mact"><button class="btn" onclick="closeM()">Cancel</button><button class="btn btnp" onclick="saveEmbassy(\'' +
+      (rec ? rec.id : "") +
       "')\">Save</button></div>";
   } else if (type === "contact") {
     b.innerHTML =
@@ -1499,6 +1574,44 @@ function closeM() {
   document.getElementById("mbg").classList.remove("on");
 }
 
+function saveEmbassy(id) {
+  var name = document.getElementById("fn").value.trim();
+  var country = document.getElementById("fco").value.trim();
+  var validity = document.getElementById("fv").value.trim();
+  var expiry_date = document.getElementById("fed").value.trim();
+  var notes = document.getElementById("fno").value.trim();
+  if (!name) return alert("Name required");
+  if (!country) return alert("Country required");
+
+  if (id) {
+    var r = {
+      id: id,
+      name: name,
+      country: country,
+      validity: validity || null,
+      expiry_date: expiry_date || null,
+      notes: notes || null,
+    };
+    var i = D.embassyAccreditations.findIndex(function (x) {
+      return x.id === id;
+    });
+    if (i >= 0) D.embassyAccreditations[i] = r;
+    else D.embassyAccreditations.push(r);
+  } else {
+    var r = {
+      name: name,
+      country: country,
+      validity: validity || null,
+      expiry_date: expiry_date || null,
+      notes: notes || null,
+    };
+    D.embassyAccreditations.push(r);
+  }
+  save();
+  closeM();
+  if (isCRMPage) renderAll();
+}
+
 function saveAcc(id) {
   var n = document.getElementById("fn").value.trim();
   var type = document.getElementById("ft").value.trim();
@@ -1560,7 +1673,7 @@ function saveCt(id) {
     var r = {
       id: id,
       name: n,
-      role: role ,
+      role: role,
       account_id: account_id || null,
       phone: phone,
       email: email,
@@ -1708,7 +1821,6 @@ function saveSub(id) {
   if (isCRMPage) renderAll();
 }
 
-
 if (typeof window !== "undefined") {
   Object.assign(window, {
     go,
@@ -1716,6 +1828,7 @@ if (typeof window !== "undefined") {
     show360,
     openM,
     closeM,
+    saveEmbassy,
     saveAcc,
     saveCt,
     saveOp,
@@ -1726,7 +1839,14 @@ if (typeof window !== "undefined") {
   });
 }
 
-
-//Add acutal login authentication and user management using supabase auth.
-//Fix the docs
-//continue data validation for activities and submissions.
+//Add Embassy Accrediation table(ID, Name, Country, Validity, Expiry date, Notes) locally and in Supabase. In a page above accounts.
+//New field in accounts table for Embassy Accreditation (foreign key to embassy accreditation table) locally and in Supabase. 1 account can have multiple embassy accreditations. Viewed and editable in account 360 page.
+//Add Salary Package table(ID, account_id, position, pay, last_changed) locally and in Supabase. Viewed and editable in account 360 page.
+//Add 1 more phone number field(phone_d) to contacts locally.Supabase added new table column phone_direct.
+//Change opp stage Active Vacancy to service agreement signed. Stages before this are considered prospective job orders, and stages from this onwards are considered active job orders.
+//Add 1 more stage, Closed, to indicate closed job orders that are no longer active.
+//Split the Opportunities/job orders into 2 Pages. 1 for Prospective, 1 for Active and Closed. The Prospective page is for prospective job orders that are still being developed and not confirmed yet.
+//The Active and Closed page is for job orders that have a confirmed headcount and timeline, and are actively being worked on by the team.
+//Active vacancies in dashboard changed to Prospective job orders(shows number of job orders in prospective stages).
+//Change Pipeline Page to show 1 row For Prospective stages, 1 row for Active Stages and 1 row for Closed Stages.
+//Closed job orders are shown differently in account 360 page, with a clear indication that they are closed, and are not included in the headcount progress bar. They are also shown in a separate section below active job orders in the account 360 page.
