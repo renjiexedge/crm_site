@@ -1161,6 +1161,8 @@ function renderEmbassy() {
             "<tr><td><b>" +
             e.name +
             "</b></td><td>" +
+            an(e.account_id) +
+            "</td><td>" +
             e.country +
             "</td><td>" +
             (e.validity || "—") +
@@ -1176,7 +1178,7 @@ function renderEmbassy() {
           );
         })
         .join("")
-    : '<tr><td colspan="6" class="empty">No accreditations</td></tr>';
+    : '<tr><td colspan="7" class="empty">No accreditations</td></tr>';
 }
 
 function renderPipeline() {
@@ -1445,13 +1447,13 @@ function openM(type, recId, presetAcc) {
     b.innerHTML =
       "<h3>" +
       (rec ? "Edit" : "New") +
-      ' accreditation</h3><input type="hidden" id="fea" value="' +
-      (rec ? rec.account_id || "" : sa) +
-      '"><div class="frow"><div class="fg"><label>Name *</label><input id="fn" value="' +
+      ' accreditation</h3><div class="frow"><div class="fg"><label>Name *</label><input id="fn" value="' +
       (rec ? rec.name : "") +
       '"></div><div class="fg"><label>Country *</label><input id="fco" value="' +
       (rec ? rec.country : "") +
-      '"></div></div><div class="frow"><div class="fg"><label>Validity</label><input id="fv" value="' +
+      '"></div></div><div class="fg"><label>Account</label><select id="fa"><option value="">-- None --</option>' +
+      aOpts(sa) +
+      '</select></div><div class="frow"><div class="fg"><label>Validity</label><input id="fv" value="' +
       (rec ? rec.validity || "" : "") +
       '"></div><div class="fg"><label>Expiry Date</label><input type="date" id="fed" value="' +
       (rec ? rec.expiry_date || "" : "") +
@@ -1612,7 +1614,7 @@ function saveEmbassy(id) {
   var validity = document.getElementById("fv").value.trim();
   var expiry_date = document.getElementById("fed").value.trim();
   var notes = document.getElementById("fno").value.trim();
-  var account_id = document.getElementById("fea").value.trim() || null;
+  var account_id = document.getElementById("fa").value.trim() || null;
   if (!name) return alert("Name required");
   if (!country) return alert("Country required");
 
