@@ -142,6 +142,9 @@ async function getCrmData() {
   const { data: submissions, error: submissionsError } = await supabase
     .from("submissions")
     .select("*");
+  const { data: salaryPackages, error: salaryPackagesError } = await supabase
+    .from("salary_packages")
+    .select("*");
 
   if (
     embassyAccreditationsError ||
@@ -149,7 +152,8 @@ async function getCrmData() {
     contactsError ||
     opportunitiesError ||
     activitiesError ||
-    submissionsError
+    submissionsError ||
+    salaryPackagesError
   ) {
     console.error(
       "Error fetching CRM data:",
@@ -158,7 +162,8 @@ async function getCrmData() {
         contactsError ||
         opportunitiesError ||
         activitiesError ||
-        submissionsError,
+        submissionsError ||
+        salaryPackagesError,
     );
     return;
   }
@@ -170,6 +175,7 @@ async function getCrmData() {
     opportunities: opportunities,
     activities: activities,
     submissions: submissions,
+    salaryPackages: salaryPackages,
   };
   return D;
 }
@@ -181,6 +187,7 @@ let D = {
   opportunities: [],
   activities: [],
   submissions: [],
+  salaryPackages: [],
 };
 
 async function loadCrmData() {
@@ -215,7 +222,7 @@ async function logout() {
 // Save CRM data to Supabase, handling both new and existing records
 async function saveToSupabase() {
   try {
-    const { accounts, contacts, opportunities, activities, submissions, embassyAccreditations } = D;
+    const { accounts, contacts, opportunities, activities, submissions, embassyAccreditations, salaryPackages } = D;
 
     const newAccounts = accounts.filter((a) => !a.account_id);
     const existingAccounts = accounts.filter((a) => a.account_id);
@@ -234,6 +241,9 @@ async function saveToSupabase() {
 
     const newEmbassyAccreditations = embassyAccreditations.filter((e) => !e.id);
     const existingEmbassyAccreditations = embassyAccreditations.filter((e) => e.id);
+
+    const newSalaryPackages = salaryPackages.filter((s) => !s.id);
+    const existingSalaryPackages = salaryPackages.filter((s) => s.id);
 
     const ops = [];
 
@@ -254,6 +264,26 @@ async function saveToSupabase() {
           .upsert(existingEmbassyAccreditations)
           .then(({ error }) => {
             if (error) throw new Error(`embassy_accreditation upsert: ${error.message}`);
+          }),
+      );
+    }
+    if (newSalaryPackages.length) {
+      ops.push(
+        supabase
+          .from("salary_packages")
+          .insert(newSalaryPackages)
+          .then(({ error }) => {
+            if (error) throw new Error(`salary_packages insert: ${error.message}`);
+          }),
+      );
+    }
+    if (existingSalaryPackages.length) {
+      ops.push(
+        supabase
+          .from("salary_packages")
+          .upsert(existingSalaryPackages)
+          .then(({ error }) => {
+            if (error) throw new Error(`salary_packages upsert: ${error.message}`);
           }),
       );
     }
@@ -376,6 +406,7 @@ async function delToSupabase(type, id) {
   try {
     const tableMap = {
       embassyAccreditations: "embassy_accreditation",
+      salaryPackages: "salary_packages",
       accounts: "accounts",
       contacts: "contacts",
       opportunities: "opportunities",
@@ -792,6 +823,9 @@ function render360(id) {
     emAccs = D.embassyAccreditations.filter(function (e) {
       return e.account_id === id;
     }),
+    salPkgs = D.salaryPackages.filter(function (s) {
+      return s.account_id === id;
+    }),
     od = acts.filter(function (a) {
       return a.followup && a.followup <= t && !a.done;
     }).length,
@@ -938,6 +972,27 @@ function render360(id) {
         .join("") +
       "</tbody></table>"
     : '<div class="empty">No submissions</div>';
+  var spHtml = salPkgs.length
+    ? '<table><thead><tr><th style="width:30%">Position</th><th style="width:22%">Salary</th><th style="width:22%">Last Changed</th><th style="width:26%"></th></tr></thead><tbody>' +
+      salPkgs
+        .map(function (s) {
+          return (
+            "<tr><td><b>" +
+            s.position +
+            "</b></td><td>" +
+            (s.pay !== null && s.pay !== undefined ? s.pay : "—") +
+            "</td><td>" +
+            (s.last_changed || "—") +
+            "</td><td><button class=\"btn\" onclick=\"openM('salaryPackage','" +
+            s.id +
+            "')\">Edit</button> <button class=\"btn btnd\" onclick=\"del('salaryPackages','" +
+            s.id +
+            "')\">Del</button></td></tr>"
+          );
+        })
+        .join("") +
+      "</tbody></table>"
+    : '<div class="empty">No salary packages</div>';
   var eaHtml = emAccs.length
     ? '<table><thead><tr><th style="width:26%">Name</th><th style="width:16%">Country</th><th style="width:14%">Validity</th><th style="width:16%">Expiry Date</th><th style="width:20%">Notes</th><th style="width:8%"></th></tr></thead><tbody>' +
       emAccs
@@ -1010,6 +1065,10 @@ function render360(id) {
     id +
     "')\">+ Add</button></div>" +
     eaHtml +
+    '</div><div class="a3sec a3full"><div class="a3sh"><span>Salary Packages</span><button class="btn" onclick="openM(\'salaryPackage\',null,\'' +
+    id +
+    "')\">+ Add</button></div>" +
+    spHtml +
     '</div><div class="a3sec a3full"><div class="a3sh"><span>Job orders — headcount progress</span><button class="btn" onclick="openM(\'opportunity\',null,\'' +
     id +
     "')\">+ Add</button></div>" +
@@ -1402,6 +1461,7 @@ function openM(type, recId, presetAcc) {
     } else {
       var src = {
         embassy: D.embassyAccreditations,
+        salaryPackage: D.salaryPackages,
         contact: D.contacts,
         opportunity: D.opportunities,
         activity: D.activities,
@@ -1598,6 +1658,30 @@ function openM(type, recId, presetAcc) {
       '"></div><div class="fg"><label>Notes</label><textarea id="fno">' +
       (rec ? rec.notes || "" : "") +
       '</textarea></div><div class="mact"><button class="btn" onclick="closeM()">Cancel</button><button class="btn btnp" onclick="saveSub(\'' +
+      (rec ? rec.id : "") +
+      "')\">Save</button></div>";
+  } else if (type === "salaryPackage") {
+    b.innerHTML =
+      "<h3>" +
+      (rec ? "Edit" : "New") +
+      ' salary package</h3><div class="fg"><label>Position *</label><select id="fpos">' +
+      POS.map(function (p) {
+        return (
+          "<option" +
+          (rec && rec.position === p ? " selected" : "") +
+          ">" +
+          p +
+          "</option>"
+        );
+      }).join("") +
+      '</select></div><div class="fg"><label>Account</label><select id="fa"><option value="">-- None --</option>' +
+      aOpts(sa) +
+      '</select></div><div class="frow"><div class="fg"><label>Pay</label><input type="number" id="fpay" min="0" step="50" value="' +
+      (rec && rec.pay !== null && rec.pay !== undefined ? rec.pay : "") +
+      '"></div><div class="fg"><label>Last Changed</label><div style="padding:6px 0;font-size:13px;color:#444">' +
+      (rec && rec.last_changed ? rec.last_changed : "—") +
+      "</div></div></div>" +
+      '<div class="mact"><button class="btn" onclick="closeM()">Cancel</button><button class="btn btnp" onclick="saveSalaryPkg(\'' +
       (rec ? rec.id : "") +
       "')\">Save</button></div>";
   }
@@ -1858,6 +1942,39 @@ function saveSub(id) {
   if (isCRMPage) renderAll();
 }
 
+function saveSalaryPkg(id) {
+  var position = document.getElementById("fpos").value.trim();
+  var account_id = document.getElementById("fa").value.trim() || null;
+  var pay = document.getElementById("fpay").value.trim();
+  if (!position) return alert("Position required");
+
+  if (id) {
+    var r = {
+      id: id,
+      account_id: account_id,
+      position: position,
+      pay: pay !== "" ? parseFloat(pay) : null,
+      last_changed: tod(),
+    };
+    var i = D.salaryPackages.findIndex(function (x) {
+      return x.id === id;
+    });
+    if (i >= 0) D.salaryPackages[i] = r;
+    else D.salaryPackages.push(r);
+  } else {
+    var r = {
+      account_id: account_id,
+      position: position,
+      pay: pay !== "" ? parseFloat(pay) : null,
+      last_changed: tod(),
+    };
+    D.salaryPackages.push(r);
+  }
+  save();
+  closeM();
+  if (isCRMPage) renderAll();
+}
+
 if (typeof window !== "undefined") {
   Object.assign(window, {
     go,
@@ -1866,6 +1983,7 @@ if (typeof window !== "undefined") {
     openM,
     closeM,
     saveEmbassy,
+    saveSalaryPkg,
     saveAcc,
     saveCt,
     saveOp,
