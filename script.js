@@ -50,6 +50,13 @@ var STAGES = [
   "Offer",
   "Placement",
   "After-sales Follow-up",
+  "Closed",
+];
+var PROSPECTIVE_STAGES = [
+  "Prospect",
+  "Contacted",
+  "Meeting Done",
+  "Terms Sent",
 ];
 var ACTIVE_STAGES = [
   "Service Agreement Signed",
@@ -59,6 +66,7 @@ var ACTIVE_STAGES = [
   "Placement",
   "After-sales Follow-up",
 ];
+var CLOSED_STAGES = ["Closed"];
 var ATYPES = ["Call", "WhatsApp", "Email", "Meeting", "Follow-up"];
 var SS = [
   "Submitted",
@@ -471,6 +479,7 @@ function stb(s) {
     Offer: "ba",
     Placement: "bgr",
     "After-sales Follow-up": "bb",
+    Closed: "bck",
   };
   return badge(s, m[s] || "bgy");
 }

@@ -424,6 +424,11 @@ tr:hover td {
   color: #433ab7;
 }
 
+.bck {
+  background: #c8c8c8;
+  color: #555;
+}
+
 .acc-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
