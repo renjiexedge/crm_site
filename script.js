@@ -44,7 +44,7 @@ var STAGES = [
   "Contacted",
   "Meeting Done",
   "Terms Sent",
-  "Active Vacancy",
+  "Service Agreement Signed",
   "CVs Submitted",
   "Interview",
   "Offer",
@@ -52,7 +52,7 @@ var STAGES = [
   "After-sales Follow-up",
 ];
 var ACTIVE_STAGES = [
-  "Active Vacancy",
+  "Service Agreement Signed",
   "CVs Submitted",
   "Interview",
   "Offer",
@@ -465,7 +465,7 @@ function stb(s) {
     Contacted: "bb",
     "Meeting Done": "bp",
     "Terms Sent": "ba",
-    "Active Vacancy": "bg",
+    "Service Agreement Signed": "bg",
     "CVs Submitted": "bg",
     Interview: "bc",
     Offer: "ba",
@@ -599,7 +599,7 @@ function renderDash() {
       return o.stage !== "Placement" && o.stage !== "After-sales Follow-up";
     }),
     activeVac = D.opportunities.filter(function (o) {
-      return o.stage === "Active Vacancy";
+      return o.stage === "Service Agreement Signed";
     }),
     placedJobs = D.opportunities.filter(function (o) {
       return o.stage === "Placement";
@@ -1599,7 +1599,7 @@ function openM(type, recId, presetAcc) {
           '"></td>'
         );
       }).join("") +
-      '</tr></tbody></table><div style="font-size:11px;color:#888;margin-top:4px">Headcount counted from Active Vacancy stage onwards.</div></div><div class="fg"><label>Notes</label><textarea id="fno">' +
+      '</tr></tbody></table><div style="font-size:11px;color:#888;margin-top:4px">Headcount counted from Service Agreement Signed stage onwards.</div></div><div class="fg"><label>Notes</label><textarea id="fno">' +
       (rec ? rec.notes || "" : "") +
       '</textarea></div><div class="mact"><button class="btn" onclick="closeM()">Cancel</button><button class="btn btnp" onclick="saveOp(\'' +
       (rec ? rec.id : "") +
