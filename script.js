@@ -899,7 +899,7 @@ function render360(id) {
         .join("")
     : '<div class="empty">No significant follow-ups</div>';
   var ctHtml = cts.length
-    ? "<table><thead><tr><th>Name</th><th>Role</th><th>Phone</th></tr></thead><tbody>" +
+    ? "<table><thead><tr><th>Name</th><th>Role</th><th>Phone</th><th>Direct Phone</th></tr></thead><tbody>" +
       cts
         .map(function (c) {
           return (
@@ -909,6 +909,8 @@ function render360(id) {
             c.role +
             "</td><td>" +
             (c.phone || "—") +
+            "</td><td>" +
+            (c.phone_d || "—") +
             "</td></tr>"
           );
         })
@@ -1093,6 +1095,8 @@ function renderContacts() {
             an(c.account_id) +
             "</td><td>" +
             (c.phone || "—") +
+            "</td><td>" +
+            (c.phone_d || "—") +
             "</td><td><button class=\"btn\" onclick=\"openM('contact','" +
             c.id +
             "')\">Edit</button> <button class=\"btn btnd\" onclick=\"del('contacts','" +
@@ -1101,7 +1105,7 @@ function renderContacts() {
           );
         })
         .join("")
-    : '<tr><td colspan="5" class="empty">No contacts</td></tr>';
+    : '<tr><td colspan="6" class="empty">No contacts</td></tr>';
 }
 
 function renderOpps() {
@@ -1540,11 +1544,13 @@ function openM(type, recId, presetAcc) {
       }).join("") +
       '</select></div></div><div class="fg"><label>Account</label><select id="fa"><option value="">-- None --</option>' +
       aOpts(sa) +
-      '</select></div><div class="frow"><div class="fg"><label>Phone</label><input id="fp" value="' +
+      '</select></div><div class="frow"><div class="fg"><label>Office Phone</label><input id="fp" value="' +
       (rec ? rec.phone || "" : "") +
       '"></div><div class="fg"><label>Email</label><input id="fe" value="' +
       (rec ? rec.email || "" : "") +
-      '"></div></div><div class="mact"><button class="btn" onclick="closeM()">Cancel</button><button class="btn btnp" onclick="saveCt(\'' +
+      '"></div></div><div class="fg"><label>Direct Phone</label><input id="fpd" value="' +
+      (rec ? rec.phone_d || "" : "") +
+      '"></div><div class="mact"><button class="btn" onclick="closeM()">Cancel</button><button class="btn btnp" onclick="saveCt(\'' +
       (rec ? rec.id : "") +
       "')\">Save</button></div>";
   } else if (type === "opportunity") {
@@ -1784,6 +1790,7 @@ function saveCt(id) {
   var account_id = document.getElementById("fa").value.trim();
   var phone = document.getElementById("fp").value.trim();
   var email = document.getElementById("fe").value.trim();
+  var phone_d = document.getElementById("fpd").value.trim();
   if (!n) return alert("Name required");
   if (!role) return alert("Role is required");
   if (!account_id) return alert("Account is required");
@@ -1798,6 +1805,7 @@ function saveCt(id) {
       account_id: account_id || null,
       phone: phone,
       email: email,
+      phone_d: phone_d || null,
     };
     var i = D.contacts.findIndex(function (x) {
       return x.id === id;
@@ -1810,6 +1818,7 @@ function saveCt(id) {
       account_id: account_id || null,
       phone: phone,
       email: email,
+      phone_d: phone_d || null,
     };
     D.contacts.push(r);
   }
