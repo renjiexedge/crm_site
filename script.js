@@ -93,6 +93,7 @@ var PG = {
   accounts: "Accounts",
   contacts: "Contacts",
   opportunities: "Opportunities",
+  joborders: "Job Orders",
   pipeline: "Pipeline",
   activities: "Activities",
   submissions: "Submissions",
@@ -559,6 +560,7 @@ window.godashboard = () => go("dashboard");
 window.goaccounts = () => go("accounts");
 window.gocontacts = () => go("contacts");
 window.goopportunities = () => go("opportunities");
+window.gojoborders = () => go("joborders");
 window.gopipeline = () => go("pipeline");
 window.goactivities = () => go("activities");
 window.gosubmissions = () => go("submissions");
@@ -584,6 +586,7 @@ function renderAll() {
   renderAccGrid();
   renderContacts();
   renderOpps();
+  renderJobOrders();
   renderPipeline();
   renderActs();
   renderSubs();
@@ -1118,8 +1121,11 @@ function renderContacts() {
 }
 
 function renderOpps() {
-  document.getElementById("otb").innerHTML = D.opportunities.length
-    ? D.opportunities
+  var prospective = D.opportunities.filter(function (o) {
+    return PROSPECTIVE_STAGES.indexOf(o.stage) >= 0;
+  });
+  document.getElementById("otb").innerHTML = prospective.length
+    ? prospective
         .map(function (o) {
           var req = reqTotal(o),
             fil = filTotal(o),
@@ -1130,13 +1136,9 @@ function renderOpps() {
               : pct > 0
                 ? "prog-fill prog-fill-part"
                 : "prog-fill";
-          var lbl = isActive(o)
-            ? ""
-            : '<span style="font-size:10px;color:#aaa"> (pipeline)</span>';
           return (
             '<tr><td style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' +
             o.title +
-            lbl +
             "</td><td>" +
             an(o.account_id) +
             "</td><td>" +
@@ -1159,7 +1161,54 @@ function renderOpps() {
           );
         })
         .join("")
-    : '<tr><td colspan="7" class="empty">No opportunities</td></tr>';
+    : '<tr><td colspan="7" class="empty">No prospective opportunities</td></tr>';
+}
+
+function renderJobOrders() {
+  var el = document.getElementById("jtb");
+  if (!el) return;
+  var jobOrders = D.opportunities.filter(function (o) {
+    return ACTIVE_STAGES.indexOf(o.stage) >= 0 || CLOSED_STAGES.indexOf(o.stage) >= 0;
+  });
+  el.innerHTML = jobOrders.length
+    ? jobOrders
+        .map(function (o) {
+          var req = reqTotal(o),
+            fil = filTotal(o),
+            pct = req > 0 ? Math.round((fil / req) * 100) : 0;
+          var isClosed = CLOSED_STAGES.indexOf(o.stage) >= 0;
+          var bc =
+            pct >= 100
+              ? "prog-fill"
+              : pct > 0
+                ? "prog-fill prog-fill-part"
+                : "prog-fill";
+          return (
+            '<tr' + (isClosed ? ' style="opacity:0.6"' : "") + '><td style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' +
+            o.title +
+            "</td><td>" +
+            an(o.account_id) +
+            "</td><td>" +
+            stb(o.stage) +
+            '</td><td style="text-align:center">' +
+            req +
+            '</td><td style="text-align:center">' +
+            fil +
+            '</td><td><div style="font-size:10px;color:#888">' +
+            pct +
+            '%</div><div class="prog-bar"><div class="' +
+            bc +
+            '" style="width:' +
+            pct +
+            '%"></div></div></td><td><button class="btn" onclick="openM(\'opportunity\',\'' +
+            o.id +
+            "')\">Edit</button> <button class=\"btn btnd\" onclick=\"del('opportunities','" +
+            o.id +
+            "')\">Del</button></td></tr>"
+          );
+        })
+        .join("")
+    : '<tr><td colspan="7" class="empty">No active or closed job orders</td></tr>';
 }
 
 function renderActs() {

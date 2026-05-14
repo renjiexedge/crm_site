@@ -14,6 +14,7 @@
         <button class="nav" onclick="go('accounts')">Accounts</button>
         <button class="nav" onclick="go('contacts')">Contacts</button>
         <button class="nav" onclick="go('opportunities')">Opportunities</button>
+        <button class="nav" onclick="go('joborders')">Job Orders</button>
         <button class="nav" onclick="go('embassy')">
           Embassy Accreditation
         </button>
@@ -120,7 +121,7 @@
           </div>
           <div class="pg" id="pg-opportunities">
             <div class="row">
-              <span class="ptitle">Opportunities / Job Orders</span
+              <span class="ptitle">Opportunities</span
               ><button class="btn btnp" onclick="openM('opportunity')">
                 + Add
               </button>
@@ -139,6 +140,30 @@
                   </tr>
                 </thead>
                 <tbody id="otb"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="pg" id="pg-joborders">
+            <div class="row">
+              <span class="ptitle">Job Orders</span
+              ><button class="btn btnp" onclick="openM('opportunity')">
+                + Add
+              </button>
+            </div>
+            <div class="card">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width: 22%">Title</th>
+                    <th style="width: 18%">Account</th>
+                    <th style="width: 14%">Stage</th>
+                    <th style="width: 9%">Requested</th>
+                    <th style="width: 9%">Filled</th>
+                    <th style="width: 14%">Progress</th>
+                    <th style="width: 14%">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="jtb"></tbody>
               </table>
             </div>
           </div>
